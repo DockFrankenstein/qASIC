@@ -58,7 +58,7 @@ namespace qASIC.Console.Commands
 
             int closestMatchCorrectArgsCount = -1;
             Target? closestMatch = null;
-            
+
             if (FindCommandAndTryRun(new List<object>()))
                 return returnValue;
 
@@ -73,9 +73,10 @@ namespace qASIC.Console.Commands
                     foreach (var value in cmdArgs[index].parsedValues)
                     {
                         values[index] = value;
-                        FindCommandAndTryRun(values, false);
+                        if (FindCommandAndTryRun(values, false))
+                            return true;
 
-                        if (first && RunFromValues(values))
+                        if (index == cmdArgs.Length - 1 && RunFromValues(values))
                             return true;
                     }
                 }
@@ -112,7 +113,7 @@ namespace qASIC.Console.Commands
 
                     int argCount = 0;
                     for (; argCount < valueTypes.Length; argCount++)
-                        if (valueTypes[argCount] != targetArgTypes[argCount]) 
+                        if (valueTypes[argCount] != targetArgTypes[argCount])
                             break;
 
                     if (argCount > closestMatchCorrectArgsCount)
@@ -223,7 +224,7 @@ namespace qASIC.Console.Commands
                             if (values[0] == Type.Missing)
                                 return fieldInfo.GetValue(null); ;
 
-                            fieldInfo.SetValue(null, values[0]);                          
+                            fieldInfo.SetValue(null, values[0]);
                         }
 
                         foreach (var item in targets)
