@@ -1,6 +1,6 @@
 ﻿namespace qASIC.Console.Commands.BuiltIn
 {
-    [BuildInConsoleCommand]
+    [BuiltInCommandTarget]
     public class Version : GameCommand
     {
         public override string CommandName => "version";

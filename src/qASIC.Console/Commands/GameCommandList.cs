@@ -17,7 +17,7 @@ namespace qASIC.Console.Commands
         }
 
         public GameCommandList FindBuiltInCommands() =>
-            FindCommands<BuildInConsoleCommandAttribute>();
+            FindCommands<BuiltInCommandTargetAttribute>();
 
         /// <summary>Finds and adds commands to the list that use <see cref="StandardConsoleCommandAttribute"/>.</summary>
         public GameCommandList FindCommands() =>
