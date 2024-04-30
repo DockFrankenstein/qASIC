@@ -11,7 +11,7 @@
         public override object? Run(CommandArgs args)
         {
             args.CheckArgumentCount(0);
-            args.console.Log("Hello world :)", Color.Green);
+            args.console.Log("Hello world :)", qColor.Green);
             return null;
         }
     }

@@ -10,16 +10,16 @@
 
         public LogColorAttribute(GenericColor color)
         {
-            Color = Color.GetGenericColor(color);
+            Color = qColor.GetGenericColor(color);
         }
 
         public LogColorAttribute(byte red, byte green, byte blue) : this(red, green, blue, 0) { }
         public LogColorAttribute(byte red, byte green, byte blue, byte alpha)
         {
-            Color = new Color(red, green, blue, alpha);
+            Color = new qColor(red, green, blue, alpha);
         }
 
         public string? ColorTag { get; init; } = null;
-        public Color Color { get; init; }
+        public qColor Color { get; init; }
     }
 }

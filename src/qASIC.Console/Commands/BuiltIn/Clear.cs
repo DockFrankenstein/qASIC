@@ -10,7 +10,7 @@
         public override object? Run(CommandArgs args)
         {
             args.CheckArgumentCount(0);
-            args.console.Log(Log.CreateNow(string.Empty, LogType.Clear, Color.Clear));
+            args.console.Log(qLog.CreateNow(string.Empty, LogType.Clear, qColor.Clear));
             return null;
         }
     }

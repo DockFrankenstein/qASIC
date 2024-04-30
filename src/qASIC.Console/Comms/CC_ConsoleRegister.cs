@@ -9,10 +9,10 @@ namespace qASIC.Console.Comms
             if (args.packetType != PacketType.Client) return;
             var consoleName = args.packet.ReadString();
 
-            var logs = new List<Log>();
+            var logs = new List<qLog>();
             int logCount = args.packet.ReadInt();
             for (int i = 0; i < logCount; i++)
-                logs.Add(args.packet.ReadNetworkSerializable<Log>());
+                logs.Add(args.packet.ReadNetworkSerializable<qLog>());
 
             var console = new GameConsole(consoleName)
             {

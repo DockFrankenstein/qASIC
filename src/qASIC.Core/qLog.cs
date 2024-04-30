@@ -1,4 +1,5 @@
 ﻿using qASIC.Communication;
+using System;
 
 namespace qASIC
 {
@@ -10,16 +11,16 @@ namespace qASIC
         Clear,
     }
 
-    public class Log : INetworkSerializable
+    public class qLog : INetworkSerializable
     {
-        public Log() { }
+        public qLog() { }
 
-        public Log(DateTime time, string message) : this(time, message, qDebug.DEFAULT_COLOR_TAG) { }
+        public qLog(DateTime time, string message) : this(time, message, qDebug.DEFAULT_COLOR_TAG) { }
 
-        public Log(DateTime time, string message, Color color) : this(time, message, LogType.Application, color) { }
-        public Log(DateTime time, string message, string colorTag) : this(time, message, LogType.Application, colorTag) { }
+        public qLog(DateTime time, string message, qColor color) : this(time, message, LogType.Application, color) { }
+        public qLog(DateTime time, string message, string colorTag) : this(time, message, LogType.Application, colorTag) { }
 
-        public Log(DateTime time, string message, LogType logType, Color color)
+        public qLog(DateTime time, string message, LogType logType, qColor color)
         {
             this.time = time;
             this.message = message;
@@ -28,7 +29,7 @@ namespace qASIC
             colorTag = null;
         }
 
-        public Log(DateTime time, string message, LogType logType, string colorTag)
+        public qLog(DateTime time, string message, LogType logType, string colorTag)
         {
             this.time = time;
             this.message = message;
@@ -39,20 +40,20 @@ namespace qASIC
         public DateTime time;
         public string message = string.Empty;
         public LogType logType = LogType.Application;
-        public string? colorTag = qDebug.DEFAULT_COLOR_TAG;
-        public Color color = Color.White;
+        public string colorTag = qDebug.DEFAULT_COLOR_TAG;
+        public qColor color = qColor.White;
 
-        public static Log CreateNow(string message, Color color) =>
-            new Log(DateTime.Now, message, color);
+        public static qLog CreateNow(string message, qColor color) =>
+            new qLog(DateTime.Now, message, color);
 
-        public static Log CreateNow(string message, string colorTag) =>
-            new Log(DateTime.Now, message, colorTag);
+        public static qLog CreateNow(string message, string colorTag) =>
+            new qLog(DateTime.Now, message, colorTag);
 
-        public static Log CreateNow(string message, LogType logType, Color color) =>
-            new Log(DateTime.Now, message, logType, color);
+        public static qLog CreateNow(string message, LogType logType, qColor color) =>
+            new qLog(DateTime.Now, message, logType, color);
 
-        public static Log CreateNow(string message, LogType logType, string colorTag) =>
-            new Log(DateTime.Now, message, logType, colorTag);
+        public static qLog CreateNow(string message, LogType logType, string colorTag) =>
+            new qLog(DateTime.Now, message, logType, colorTag);
 
         public override string ToString() =>
             $"[{time:HH:mm:ss}] [{logType}] {message}";
@@ -77,7 +78,7 @@ namespace qASIC
             if (nullColorTag)
                 colorTag = null;
 
-            color = packet.ReadNetworkSerializable<Color>();
+            color = packet.ReadNetworkSerializable<qColor>();
         }
     }
 }

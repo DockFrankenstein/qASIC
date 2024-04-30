@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace qASIC.Communication.Components
 {
@@ -32,10 +34,10 @@ namespace qASIC.Communication.Components
             return this;
         }
 
-        public T? GetComponent<T>() where T : CommsComponent =>
+        public T GetComponent<T>() where T : CommsComponent =>
             GetComponent(typeof(T)) as T;
 
-        public CommsComponent? GetComponent(Type type)
+        public CommsComponent GetComponent(Type type)
         {
             if (!componentsDictionary.ContainsKey(type))
                 return null;

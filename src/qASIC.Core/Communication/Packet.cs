@@ -1,4 +1,7 @@
 ﻿using System.Text;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 
 namespace qASIC.Communication
 {
@@ -28,7 +31,16 @@ namespace qASIC.Communication
 
         public bool ReadBool() => BitConverter.ToBoolean(ReadCurrentBytes(1), 0);
         public byte ReadByte() => ReadCurrentBytes(1).First();
-        public sbyte ReadSByte() => unchecked((sbyte)ReadCurrentBytes(1).FirstOrDefault((byte)0));
+        public sbyte ReadSByte()
+        {
+            byte b = 0;
+            var bytes = ReadCurrentBytes(1);
+            if (bytes.Count() > 0)
+                b = bytes.First();
+
+            return unchecked((sbyte)b);
+        }
+
         public int ReadInt() => BitConverter.ToInt32(ReadCurrentBytes(sizeof(int)), 0);
         public uint ReadUInt() => BitConverter.ToUInt32(ReadCurrentBytes(sizeof(uint)), 0);
         public float ReadFloat() => BitConverter.ToSingle(ReadCurrentBytes(sizeof(float)), 0);

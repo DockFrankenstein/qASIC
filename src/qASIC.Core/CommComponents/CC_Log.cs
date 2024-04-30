@@ -1,19 +1,20 @@
 ﻿using qASIC.Communication;
 using qASIC.Communication.Components;
+using System;
 
 namespace qASIC.CommComponents
 {
     public class CC_Log : CommsComponent
     {
-        public event Action<Log, PacketType>? OnReceiveLog;
+        public event Action<qLog, PacketType> OnReceiveLog;
 
         public override void Read(CommsComponentArgs args)
         {
-            var log = args.packet.ReadNetworkSerializable<Log>();
+            var log = args.packet.ReadNetworkSerializable<qLog>();
             OnReceiveLog?.Invoke(log, args.packetType);
         }
 
-        public static Packet BuildLogPacket(Log log) =>
+        public static Packet BuildLogPacket(qLog log) =>
             new CC_Log().CreateEmptyComponentPacket()
             .Write(log);
     }

@@ -1,4 +1,5 @@
 ﻿using qASIC.Communication;
+using System;
 
 namespace qASIC
 {
@@ -16,11 +17,11 @@ namespace qASIC
     }
 
     [Serializable]
-    public struct Color : INetworkSerializable
+    public struct qColor : INetworkSerializable
     {
-        public Color(byte red, byte green, byte blue) : this(red, green, blue, 255) { }
+        public qColor(byte red, byte green, byte blue) : this(red, green, blue, 255) { }
 
-        public Color(byte red, byte green, byte blue, byte alpha)
+        public qColor(byte red, byte green, byte blue, byte alpha)
         {
             this.red = red;
             this.green = green;
@@ -28,22 +29,22 @@ namespace qASIC
             this.alpha = alpha;
         }
 
-        public static Color Clear => new Color(0, 0, 0, 0);
-        public static Color Black => new Color(0, 0, 0);
-        public static Color White => new Color(255, 255, 255);
-        public static Color Red => new Color(255, 0, 0);
-        public static Color Green => new Color(0, 255, 0);
-        public static Color Yellow => new Color(255, 255, 0);
-        public static Color DarkBlue => new Color(0, 0, 255);
-        public static Color Blue => new Color(0, 255, 255);
-        public static Color Purple => new Color(255, 0, 255);
+        public static qColor Clear => new qColor(0, 0, 0, 0);
+        public static qColor Black => new qColor(0, 0, 0);
+        public static qColor White => new qColor(255, 255, 255);
+        public static qColor Red => new qColor(255, 0, 0);
+        public static qColor Green => new qColor(0, 255, 0);
+        public static qColor Yellow => new qColor(255, 255, 0);
+        public static qColor DarkBlue => new qColor(0, 0, 255);
+        public static qColor Blue => new qColor(0, 255, 255);
+        public static qColor Purple => new qColor(255, 0, 255);
 
         public byte red;
         public byte green;
         public byte blue;
         public byte alpha;
 
-        public static Color GetGenericColor(GenericColor color) =>
+        public static qColor GetGenericColor(GenericColor color) =>
             color switch
             {
                 GenericColor.Clear => Clear,
@@ -73,15 +74,15 @@ namespace qASIC
             .Write(blue)
             .Write(alpha);
 
-        public static bool operator ==(Color? a, Color? b) =>
+        public static bool operator ==(qColor? a, qColor? b) =>
             a?.Equals(b) ?? (a is null && b is null);
 
-        public static bool operator !=(Color? left, Color? right) =>
+        public static bool operator !=(qColor? left, qColor? right) =>
             !(left == right);
 
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
-            if (obj is not Color color)
+            if (!(obj is qColor color))
                 return false;
 
             return red == color.red &&

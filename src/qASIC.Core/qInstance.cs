@@ -8,7 +8,7 @@ namespace qASIC
     {
         public const int DEFAULT_REMOTE_PORT = 8174;
 
-        public qInstance(RemoteAppInfo? appInfo = null)
+        public qInstance(RemoteAppInfo appInfo = null)
         {
             RemoteInspectorComponents = CommsComponentCollection.GetStandardCollection()
                 .AddComponent(cc_log);
@@ -40,7 +40,7 @@ namespace qASIC
             qDebug.OnLog += QDebug_OnLog;
         }
 
-        private void QDebug_OnLog(Log log)
+        private void QDebug_OnLog(qLog log)
         {
             if (!forwardDebugLogs) return;
             if (!RemoteInspectorServer.IsActive) return;

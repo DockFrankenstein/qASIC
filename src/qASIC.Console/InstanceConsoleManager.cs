@@ -87,7 +87,7 @@ namespace qASIC.Console
         public RegisteredConsole? Get(string name) =>
             RegisteredConsoles.TryGetValue(name, out var console) ? console : null;
 
-        private void Console_OnLog(GameConsole console, Log log)
+        private void Console_OnLog(GameConsole console, qLog log)
         {
             if (Peer is Server server)
                 server.SendToAll(CC_ConsoleLog.BuildPacket(console, log));

@@ -104,7 +104,7 @@ namespace qASICRemote
                 CC_Log_OnRead(console, log);
         }
 
-        private static void CC_Log_OnRead(GameConsole console, Log log)
+        private static void CC_Log_OnRead(GameConsole console, qLog log)
         {
             log.message = $"[R:{console.Name}] {log.message}";
             GConsole?.Log(log);
@@ -167,7 +167,7 @@ namespace qASICRemote
             GConsole?.Log($"Registered consoles: {string.Join(string.Empty, consoles)}");
         }
 
-        private static void GConsole_OnLog(Log log)
+        private static void GConsole_OnLog(qLog log)
         {
             if (log.logType == LogType.Clear)
             {
@@ -175,11 +175,11 @@ namespace qASICRemote
                 return;
             }
 
-            var color = GConsole?.GetLogColor(log) ?? Color.White;
+            var color = GConsole?.GetLogColor(log) ?? qColor.White;
             Console.WriteLine($"[Output] [{log.logType}] {log.message}".Pastel(System.Drawing.Color.FromArgb(color.red, color.green, color.blue)));
         }
 
-        private static void Cc_log_OnReceiveLog(Log log, PacketType packetType)
+        private static void Cc_log_OnReceiveLog(qLog log, PacketType packetType)
         {
             log.message = $"[qDebug]{log.message}";
             GConsole?.Log(log);
@@ -188,7 +188,7 @@ namespace qASICRemote
         private static void Client_OnConnect()
         {
             var appInfo = (RemoteAppInfo)client!.AppInfo;
-            GConsole?.Log($"Connected to '{appInfo.projectName}' v{appInfo.version} made with '{appInfo.engine}' v{appInfo.version} using protocol version {appInfo.protocolVersion}");
+            GConsole?.Log($"Connected to '{appInfo.projectName}' v{appInfo.version} made with '{appInfo.engine}' v{appInfo.engineVersion} using protocol version {appInfo.protocolVersion}");
 
             var systems = appInfo.systems
                 .Select(x => $"\n- {x.name} v{x.version}");

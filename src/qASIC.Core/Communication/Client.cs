@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using System.Net.NetworkInformation;
+using System.Collections.Generic;
 using System;
 using qASIC.Communication.Components;
 
@@ -53,15 +53,15 @@ namespace qASIC.Communication
         public int maxConnectionAttempts;
         private int connectionAttempts = 0;
 
-        public TcpClient? Socket { get; private set; }
-        public NetworkStream? Stream { get; private set; }
+        public TcpClient Socket { get; private set; }
+        public NetworkStream Stream { get; private set; }
 
 
-        public Action<string>? OnLog;
-        public Action? OnStart;
-        public Action? OnConnect;
-        public Action<DisconnectReason>? OnDisconnect;
-        public Func<Packet, NetworkServerInfo>? ProcessAppInfo = null;
+        public Action<string> OnLog;
+        public Action OnStart;
+        public Action OnConnect;
+        public Action<DisconnectReason> OnDisconnect;
+        public Func<Packet, NetworkServerInfo> ProcessAppInfo = null;
 
         private byte[] buffer = new byte[0];
         private System.Diagnostics.Stopwatch time = new System.Diagnostics.Stopwatch();
@@ -70,7 +70,7 @@ namespace qASIC.Communication
 
         public bool logPacketSend = false;
 
-        PriorityQueue<KeyValuePair<Action, long>, long> eventQueue = new PriorityQueue<KeyValuePair<Action, long>, long>();
+        qPriorityQueue<KeyValuePair<Action, long>, long> eventQueue = new qPriorityQueue<KeyValuePair<Action, long>, long>();
 
         public void Update()
         {

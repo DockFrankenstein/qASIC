@@ -1,4 +1,4 @@
-﻿using GameLog = qASIC.Log;
+﻿using GameLog = qASIC.qLog;
 using System.Diagnostics;
 using qASIC.Console.Commands;
 using System.Reflection;
@@ -181,7 +181,7 @@ namespace qASIC.Console
         /// <param name="message">Message to log.</param>
         /// <param name="color">Message color.</param>
         /// <param name="stackTraceIndex">Index used for gathering log customization attributes.</param>
-        public void Log(string message, Color color, int stackTraceIndex = 2) =>
+        public void Log(string message, qColor color, int stackTraceIndex = 2) =>
             Log(GameLog.CreateNow(message, color), stackTraceIndex);
 
         /// <summary>Logs a message to the console with a color.</summary>
@@ -220,7 +220,7 @@ namespace qASIC.Console
             OnLog?.Invoke(log);
         }
 
-        public Color GetLogColor(GameLog log) =>
+        public qColor GetLogColor(GameLog log) =>
             Theme.GetLogColor(log);
 
         static bool TryGetPrefixAttributeOfTrace(MethodBase? method, Type? declaringType, out LogPrefixAttribute? attribute)

@@ -7,10 +7,10 @@
             switch (args.packetType)
             {
                 case PacketType.Server:
-                    args.server!.DisconnectClientLocal(args.targetServerClient!);
+                    args.server.DisconnectClientLocal(args.targetServerClient);
                     break;
                 case PacketType.Client:
-                    args.client!.DisconnectLocal(Client.DisconnectReason.ServerShutdown);
+                    args.client.DisconnectLocal(Client.DisconnectReason.ServerShutdown);
                     break;
             }
         }

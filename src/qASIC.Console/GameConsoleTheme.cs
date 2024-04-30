@@ -7,13 +7,13 @@ namespace qASIC.Console
         public static GameConsoleTheme Default =>
             new GameConsoleTheme();
 
-        public Color defaultColor = Color.White;
-        public Color warningColor = Color.Yellow;
-        public Color errorColor = Color.Red;
+        public qColor defaultColor = qColor.White;
+        public qColor warningColor = qColor.Yellow;
+        public qColor errorColor = qColor.Red;
 
-        public Dictionary<string, Color> customColors = new Dictionary<string, Color>();
+        public Dictionary<string, qColor> customColors = new Dictionary<string, qColor>();
 
-        public Color GetLogColor(Log log)
+        public qColor GetLogColor(qLog log)
         {
             switch (log.colorTag)
             {
@@ -40,11 +40,11 @@ namespace qASIC.Console
             customColors.Clear();
             int colorCount = packet.ReadInt();
             for (int i = 0; i < colorCount; i++)
-                customColors.Add(packet.ReadString(), packet.ReadNetworkSerializable<Color>());
+                customColors.Add(packet.ReadString(), packet.ReadNetworkSerializable<qColor>());
 
-            defaultColor = packet.ReadNetworkSerializable<Color>();
-            warningColor = packet.ReadNetworkSerializable<Color>();
-            errorColor = packet.ReadNetworkSerializable<Color>();
+            defaultColor = packet.ReadNetworkSerializable<qColor>();
+            warningColor = packet.ReadNetworkSerializable<qColor>();
+            errorColor = packet.ReadNetworkSerializable<qColor>();
         }
 
         public Packet Write(Packet packet)

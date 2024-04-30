@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using qASIC.Communication.Components;
+using System.Collections.Generic;
+using System;
 
 namespace qASIC.Communication
 {
@@ -26,7 +28,7 @@ namespace qASIC.Communication
         public TcpListener Listener { get; private set; }
 
         public event Action<Client> OnClientConnect;
-        public Action<string>? OnLog;
+        public Action<string> OnLog;
 
         int nextClientId;
         public bool logPacketSend = false;
@@ -165,7 +167,7 @@ namespace qASIC.Communication
 
         public class Client
         {
-            public Client(int id, TcpClient socket, Action<OnServerReceiveDataArgs> onDataReceive, Action<string>? onLog = null)
+            public Client(int id, TcpClient socket, Action<OnServerReceiveDataArgs> onDataReceive, Action<string> onLog = null)
             {
                 this.id = id;
 
@@ -183,8 +185,8 @@ namespace qASIC.Communication
             public TcpClient Socket { get; private set; }
             public NetworkStream Stream { get; private set; }
 
-            public Action<string>? OnLog;
-            public event Action<OnServerReceiveDataArgs>? OnDataReceive;
+            public Action<string> OnLog;
+            public event Action<OnServerReceiveDataArgs> OnDataReceive;
 
             private byte[] buffer;
 

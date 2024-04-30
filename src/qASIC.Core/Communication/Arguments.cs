@@ -22,10 +22,10 @@
 
         public PacketType packetType;
         public Packet packet;
-        public Client? client;
-        public Server? server;
+        public Client client;
+        public Server server;
 
-        public Server.Client? targetServerClient;
+        public Server.Client targetServerClient;
 
         public void Log(string message)
         {
