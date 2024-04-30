@@ -100,7 +100,7 @@
 
     public class StringParser : ValueParser<string>
     {
-        public override bool TryParse(string s, out string? result)
+        public override bool TryParse(string s, out string result)
         {
             result = s;
             return true;

@@ -1,4 +1,6 @@
-﻿namespace qASIC.Console
+﻿using System;
+
+namespace qASIC.Console
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
     public class CommandAttribute : Attribute
@@ -8,7 +10,7 @@
             Name = name;
         }
 
-        public string Name { get; init; }
-        public bool UseRegisteredTargets { get; init; } = true;
+        public string Name { get; private set; }
+        public bool UseRegisteredTargets { get; private set; } = true;
     }
 }

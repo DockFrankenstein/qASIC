@@ -161,7 +161,7 @@ namespace qASICRemote
         private static void ListConsoles()
         {
             var consoles = consoleManager?
-                .Select(x => $"\n- {x.console.Name}") ??
+                .Select(x => $"\n- {x.Console.Name}") ??
                 new List<string>();
 
             GConsole?.Log($"Registered consoles: {string.Join(string.Empty, consoles)}");

@@ -3,6 +3,8 @@ using System.Diagnostics;
 using qASIC.Console.Commands;
 using System.Reflection;
 using qASIC.Console.Parsing.Arguments;
+using System;
+using System.Collections.Generic;
 
 namespace qASIC.Console
 {
@@ -26,14 +28,14 @@ namespace qASIC.Console
                 Log(log, 4, false);
         }
 
-        public string Name { get; init; }
+        public string Name { get; private set; }
 
-        public event Action<GameLog>? OnLog;
+        public event Action<GameLog> OnLog;
 
         public List<GameLog> Logs { get; internal set; } = new List<GameLog>();
 
-        public GameCommandList? CommandList { get; set; }
-        public ArgumentsParser? CommandParser { get; set; }
+        public GameCommandList CommandList { get; set; }
+        public ArgumentsParser CommandParser { get; set; }
 
         public GameConsoleTheme Theme { get; set; } = GameConsoleTheme.Default;
 
@@ -97,7 +99,7 @@ namespace qASIC.Console
 
             var commandName = args[0].arg.ToLower();
 
-            if (!CommandList.TryGetCommand(commandName, out IGameCommand? command))
+            if (!CommandList.TryGetCommand(commandName, out IGameCommand command))
             {
                 LogError($"Command {commandName} doesn't exist");
                 return;
@@ -111,28 +113,9 @@ namespace qASIC.Console
             };
 
             Execute(commandName, () => command!.Run(commandArgs));
-
-            //try
-            //{
-
-            //    var output = command!.Run(commandArgs);
-
-            //    if (output != null)
-            //        Log($"Command returned '{output}'");
-            //}
-            //catch (GameCommandException e)
-            //{
-            //    LogError(e.ToString(IncludeStackTraceInCommandExceptions));
-            //}
-            //catch (Exception e)
-            //{
-            //    LogError(IncludeStackTraceInUnknownCommandExceptions ?
-            //        $"There was an error while executing command '{args[0].arg.ToLower()}': {e}" :
-            //        $"There was an error while executing command '{args[0].arg.ToLower()}'.");
-            //}
         }
 
-        public object? Execute(string commandName, Func<object?> command)
+        public object Execute(string commandName, Func<object> command)
         {
             try
             {
@@ -223,7 +206,7 @@ namespace qASIC.Console
         public qColor GetLogColor(GameLog log) =>
             Theme.GetLogColor(log);
 
-        static bool TryGetPrefixAttributeOfTrace(MethodBase? method, Type? declaringType, out LogPrefixAttribute? attribute)
+        static bool TryGetPrefixAttributeOfTrace(MethodBase method, Type declaringType, out LogPrefixAttribute attribute)
         {
             attribute = null;
 
@@ -244,7 +227,7 @@ namespace qASIC.Console
             return false;
         }
 
-        static bool TryGetColorAttributeOfTrace(MethodBase? method, Type? declaringType, out LogColorAttribute? attribute)
+        static bool TryGetColorAttributeOfTrace(MethodBase method, Type declaringType, out LogColorAttribute attribute)
         {
             attribute = null;
 

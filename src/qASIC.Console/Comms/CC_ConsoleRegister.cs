@@ -1,4 +1,6 @@
 ﻿using qASIC.Communication;
+using System;
+using System.Collections.Generic;
 
 namespace qASIC.Console.Comms
 {

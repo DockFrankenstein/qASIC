@@ -1,8 +1,11 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace qASIC.Console
 {
-    public struct CommandArgs : IEnumerable<ConsoleArgument>
+    public struct CommandArgs : IEnumerable<ConsoleArgument>, IEnumerable
     {
         public string commandName;
         public ConsoleArgument[] args;
@@ -63,19 +66,19 @@ namespace qASIC.Console
             return obj!;
         }
 
-        public bool TryGetValue<T>(out T? value)
+        public bool TryGetValue<T>(out T value)
         {
             var result = TryGetValue(typeof(T), out var obj);
-            value = (T?)obj;
+            value = (T)obj;
             return result;
         }
 
-        public bool TryGetValue(Type type, out object? value)
+        public bool TryGetValue(Type type, out object value)
         {
             foreach (var item in parsedValues)
             {
                 var itemType = item.GetType();
-                if (!itemType.IsAssignableTo(type)) continue;
+                if (!type.IsAssignableFrom(itemType)) continue;
                 value = item;
                 return true;
             }

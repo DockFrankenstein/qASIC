@@ -1,5 +1,8 @@
 ﻿using System.Collections;
 using System.Reflection;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace qASIC.Console.Commands
 {
@@ -69,7 +72,7 @@ namespace qASIC.Console.Commands
 
             foreach (var method in targets)
             {
-                var attr = (CommandAttribute?)method.GetCustomAttribute(type);
+                var attr = (CommandAttribute)method.GetCustomAttribute(type);
                 if (attr == null) continue;
 
                 var commandName = attr.Name.ToLower();
@@ -101,7 +104,7 @@ namespace qASIC.Console.Commands
         /// <param name="commandName">Name of the command, doesn't need to be lowercase.</param>
         /// <param name="command">Found command.</param>
         /// <returns>Returns if it found a command.</returns>
-        public bool TryGetCommand(string commandName, out IGameCommand? command)
+        public bool TryGetCommand(string commandName, out IGameCommand command)
         {
             commandName = commandName.ToLower();
 

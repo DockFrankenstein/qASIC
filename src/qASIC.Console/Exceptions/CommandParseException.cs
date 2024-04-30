@@ -1,4 +1,6 @@
-﻿namespace qASIC.Console
+﻿using System;
+
+namespace qASIC.Console
 {
     public class CommandParseException : GameCommandException
     {

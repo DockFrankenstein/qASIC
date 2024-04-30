@@ -1,4 +1,6 @@
-﻿namespace qASIC.Console
+﻿using System;
+
+namespace qASIC.Console
 {
     /// <summary>Attribute for adding prefixes to logs.</summary>
     /// <example>If a class that has a [LogPrefix("Settings")] attribute logs "Loaded settings" will show up as "[Settings] Loaded settings" in the console.</example>
@@ -10,7 +12,7 @@
             Prefix = prefix;
         }
 
-        public string Prefix { get; init; }
+        public string Prefix { get; private set; }
 
         /// <summary>Determines if the prefix should be applied.</summary>
         public virtual bool ValidPrefix =>

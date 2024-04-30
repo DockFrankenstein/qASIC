@@ -5,12 +5,12 @@ namespace qASIC.Console.Comms
 {
     public abstract class ConsoleCommsComponent : CommsComponent
     {
-        public InstanceConsoleManager? ConsoleManager { get; set; }
+        public InstanceConsoleManager ConsoleManager { get; set; }
 
         public override void Read(CommsComponentArgs args)
         {
             var consoleName = args.packet.ReadString();
-            var console = ConsoleManager?.Get(consoleName)?.console;
+            var console = ConsoleManager?.Get(consoleName)?.Console;
             if (console == null)
             {
                 args.Log("[Error] Console not registered");

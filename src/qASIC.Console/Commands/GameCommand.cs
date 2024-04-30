@@ -6,10 +6,10 @@
 
         public virtual string[] Aliases => new string[0];
 
-        public virtual string? Description => null;
+        public virtual string Description => null;
 
-        public virtual string? DetailedDescription => null;
+        public virtual string DetailedDescription => null;
 
-        public abstract object? Run(CommandArgs args);
+        public abstract object Run(CommandArgs args);
     }
 }

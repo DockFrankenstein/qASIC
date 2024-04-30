@@ -1,4 +1,6 @@
-﻿namespace qASIC.Console
+﻿using System;
+
+namespace qASIC.Console
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method)]
     public class LogColorAttribute : Attribute
@@ -19,7 +21,7 @@
             Color = new qColor(red, green, blue, alpha);
         }
 
-        public string? ColorTag { get; init; } = null;
-        public qColor Color { get; init; }
+        public string ColorTag { get; private set; } = null;
+        public qColor Color { get; private set; }
     }
 }

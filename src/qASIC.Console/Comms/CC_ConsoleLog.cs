@@ -1,11 +1,12 @@
 ﻿using qASIC.Communication.Components;
 using qASIC.Communication;
+using System;
 
 namespace qASIC.Console.Comms
 {
     public class CC_ConsoleLog : ConsoleCommsComponent
     {
-        public event Action<GameConsole, qLog>? OnRead;
+        public event Action<GameConsole, qLog> OnRead;
 
         public override void ReadForConsole(CommsComponentArgs args, GameConsole console)
         {

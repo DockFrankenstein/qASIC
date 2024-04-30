@@ -1,6 +1,4 @@
-﻿using qASIC.Console.Comms;
-
-namespace qASIC.Console
+﻿namespace qASIC.Console
 {
     public static class qInstanceExtensions
     {

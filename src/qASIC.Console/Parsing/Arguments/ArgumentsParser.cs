@@ -1,4 +1,5 @@
 ﻿using qASIC.Console.Parsing.Values;
+using System.Collections.Generic;
 
 namespace qASIC.Console.Parsing.Arguments
 {
@@ -29,7 +30,7 @@ namespace qASIC.Console.Parsing.Arguments
         {
             List<object> parsedArgs = new List<object>();
             foreach (var parser in ValueParsers)
-                if (parser.TryParse(arg, out object? result) && result != null)
+                if (parser.TryParse(arg, out object result) && result != null)
                     parsedArgs.Add(result);
 
             return parsedArgs.ToArray();

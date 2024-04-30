@@ -7,12 +7,12 @@
         /// <summary>Name aliases for identifying which command to execute.</summary>
         string[] Aliases { get; }
         /// <summary>Short description used when displaying a list of commands in help.</summary>
-        string? Description { get; }
+        string Description { get; }
         /// <summary>Detailed description used when displaying command specific description in help.</summary>
-        string? DetailedDescription { get; }
+        string DetailedDescription { get; }
 
         /// <summary>Method for executing command logic.</summary>
         /// <param name="args">Parsed arguments, this includes the command name.</param>
-        object? Run(CommandArgs args);
+        object Run(CommandArgs args);
     }
 }

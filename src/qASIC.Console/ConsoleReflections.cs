@@ -1,4 +1,7 @@
 ﻿using System.Reflection;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace qASIC.Console
 {
@@ -25,12 +28,12 @@ namespace qASIC.Console
                 .ToDictionary(x => CreateTypeId(x), x => x.GetCustomAttribute<LogPrefixAttribute>()!);
         }
 
-        public static string CreateMethodId(MethodBase? method) =>
+        public static string CreateMethodId(MethodBase method) =>
             method != null ?
             $"{method.DeclaringType?.FullName}/{method}" :
             string.Empty;
 
-        public static string CreateTypeId(Type? type) =>
-            type?.FullName ?? string.Empty;
+        public static string CreateTypeId(Type type) =>
+            type.FullName ?? string.Empty;
     }
 }

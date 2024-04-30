@@ -1,5 +1,8 @@
 ﻿using qASIC.Console.Commands.Attributes;
 using System.Reflection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace qASIC.Console.Commands
 {
@@ -15,13 +18,13 @@ namespace qASIC.Console.Commands
 
         public string[] Aliases { get; set; } = new string[0];
 
-        public string? Description { get; set; }
+        public string Description { get; set; }
 
-        public string? DetailedDescription { get; set; }
+        public string DetailedDescription { get; set; }
 
         public List<Target> Targets { get; set; } = new List<Target>();
 
-        public object? Run(CommandArgs args)
+        public object Run(CommandArgs args)
         {
             var maxArgLimit = Targets
                 .Select(x => x.maxArgsCount)
@@ -54,7 +57,7 @@ namespace qASIC.Console.Commands
                     .Where(x => supportedArgTypes[i].Contains(x.GetType()) || x is string)
                     .ToArray();
 
-            object? returnValue = null;
+            object returnValue = null;
 
             int closestMatchCorrectArgsCount = -1;
             Target? closestMatch = null;
@@ -181,7 +184,7 @@ namespace qASIC.Console.Commands
                 }
             }
 
-            public object? Invoke(object[] values, CommandArgs args)
+            public object Invoke(object[] values, CommandArgs args)
             {
                 var targetType = memberInfo.DeclaringType!;
                 var targets = targetAttr
@@ -192,7 +195,7 @@ namespace qASIC.Console.Commands
                 if (attr.UseRegisteredTargets)
                 {
                     var regTargets = args.console.Targets
-                        .Where(x => x.GetType().IsAssignableTo(targetType));
+                        .Where(x => targetType.IsAssignableFrom(x.GetType()));
 
                     targets = targets
                         .Concat(regTargets);
@@ -270,7 +273,7 @@ namespace qASIC.Console.Commands
                         throw new NotImplementedException();
                 }
 
-                void LogExecuteBegin(object? target) =>
+                void LogExecuteBegin(object target) =>
                     args.console.Log($"Executing command for target '{target ?? "NULL"}'");
             }
 

@@ -1,5 +1,4 @@
-﻿using qASIC.Communication.Components;
-using qASIC.Communication;
+﻿using qASIC.Communication;
 
 namespace qASIC.Console.Comms
 {

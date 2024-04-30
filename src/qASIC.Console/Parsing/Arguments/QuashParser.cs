@@ -1,4 +1,7 @@
-﻿namespace qASIC.Console.Parsing.Arguments
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace qASIC.Console.Parsing.Arguments
 {
     public class QuashParser : ArgumentsParser
     {

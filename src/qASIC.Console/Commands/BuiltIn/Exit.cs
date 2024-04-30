@@ -1,13 +1,15 @@
-﻿namespace qASIC.Console.Commands.BuiltIn
+﻿using System;
+
+namespace qASIC.Console.Commands.BuiltIn
 {
     [BuiltInCommandTarget]
     public class Exit : GameCommand
     {
         public override string CommandName => "exit";
-        public override string? Description => "Closes the application.";
+        public override string Description => "Closes the application.";
         public override string[] Aliases => new string[] { "quit" };
 
-        public override object? Run(CommandArgs args)
+        public override object Run(CommandArgs args)
         {
             args.CheckArgumentCount(0);
             args.console.Log("Goodbye");

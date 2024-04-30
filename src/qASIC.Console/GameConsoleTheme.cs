@@ -1,4 +1,5 @@
 ﻿using qASIC.Communication;
+using System.Collections.Generic;
 
 namespace qASIC.Console
 {
