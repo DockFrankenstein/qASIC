@@ -6,6 +6,7 @@ using System;
 
 namespace qASIC.Options
 {
+    /// <summary>List of found option targets that were marked with an <see cref="OptionAttribute"/>.</summary>
     public class OptionTargetList : IEnumerable<KeyValuePair<string, OptionTargetList.Target>>
     {
         public BindingFlags Flags { get; set; } = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -18,6 +19,8 @@ namespace qASIC.Options
         {
             get
             {
+                name = OptionsManager.FormatKeyString(name);
+
                 if (!Targets.ContainsKey(name))
                     Targets.Add(name, new List<Target>());
 
@@ -25,6 +28,8 @@ namespace qASIC.Options
             }
             set
             {
+                name = OptionsManager.FormatKeyString(name);
+
                 if (Targets.ContainsKey(name))
                 {
                     Targets.Add(name, value);
@@ -79,6 +84,7 @@ namespace qASIC.Options
 
         public bool TryGetValue(string name, out object value)
         {
+            name = OptionsManager.FormatKeyString(name);
             value = null;
 
             var items = this[name];
@@ -112,6 +118,7 @@ namespace qASIC.Options
 
         public bool TryGetDefalutValue(string name, out object value)
         {
+            name = OptionsManager.FormatKeyString(name);
             value = null;
 
             var items = this[name];
@@ -125,6 +132,43 @@ namespace qASIC.Options
             }
 
             return false;
+        }
+
+        public void Set(string name, object value)
+        {
+            name = OptionsManager.FormatKeyString(name);
+
+            var items = this[name];
+
+            var args = new ChangeOptionArgs()
+            {
+                value = value,
+            };
+
+            foreach (var item in items)
+            {
+                if (item.IsStatic)
+                {
+                    try
+                    {
+                        item.SetValue(null, args);
+                    }
+                    catch { }
+
+                    continue;
+                }
+
+                if (!TargetObjects.ContainsKey(item.DeclaringType)) continue;
+
+                foreach (var obj in TargetObjects[item.DeclaringType])
+                {
+                    try
+                    {
+                        item.SetValue(obj, args);
+                    }
+                    catch { }
+                }
+            }
         }
 
         public void RegisterObject(object obj)

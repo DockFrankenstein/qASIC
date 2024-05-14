@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace qASIC.Options
@@ -12,7 +13,7 @@ namespace qASIC.Options
 
         private Dictionary<string, ListItem> Values = new Dictionary<string, ListItem>();
 
-        public event Action<ListItem> OnChanged;
+        public event Action<ListItem[]> OnValueSet;
 
         #region Dictionary
         public ListItem this[string key]
@@ -23,31 +24,46 @@ namespace qASIC.Options
 
         public int Count => Values.Count;
 
-        public void Set(string key, ListItem value)
+        void Set(string key, ListItem value, bool silent = false)
         {
             key = OptionsManager.FormatKeyString(key);
+
+            value.OnValueChanged += _ => OnValueSet?.Invoke(new ListItem[] { value });
 
             if (Values.ContainsKey(key))
             {
                 Values[key] = value;
+
+                if (!silent)
+                    OnValueSet?.Invoke(new ListItem[] { value });
                 return;
             }
 
             Values.Add(key, value);
-            value.OnValueChanged += _ => OnChanged?.Invoke(value);
+
+            if (!silent)
+                OnValueSet?.Invoke(new ListItem[] { value });
         }
 
-        public void Set(string key, object value)
+        /// <summary>Sets the value of a specified item.</summary>
+        /// <param name="key">Name of the item.</param>
+        /// <param name="value">Value to set.</param>
+        /// <param name="silent">When true, this method won't invoke any events.</param>
+        public void Set(string key, object value, bool silent = false)
         {
             key = OptionsManager.FormatKeyString(key);
 
             if (Values.ContainsKey(key))
             {
-                Values[key].Value = value;
+                Values[key].ChangeValue(value, silent);
                 return;
             }
 
-            Values[key].Value = value;
+            var item = new ListItem(key, value);
+
+            Values.Add(key, item);
+            item.OnValueChanged += _ => OnValueSet?.Invoke(new ListItem[] { item });
+            item.ChangeValue(value, silent);
         }
 
         public void Clear() =>
@@ -66,11 +82,14 @@ namespace qASIC.Options
                 return false;
 
             var value = Values[key];
-            value.OnValueChanged -= _ => OnChanged?.Invoke(value);
+
+            value.OnValueChanged -= _ => OnValueSet?.Invoke(new ListItem[] { value });
 
             return Values.Remove(key);
         }
 
+        /// <summary>Gets the value associated with the specified key.</summary>
+        /// <returns><c>true</c> if the <see cref="OptionsList"/> contains an element with the specified key; otherwise, <c>false</c>.</returns>
         public bool TryGetValue(string key, out ListItem value) =>
             Values.TryGetValue(OptionsManager.FormatKeyString(key), out value);
 
@@ -78,20 +97,35 @@ namespace qASIC.Options
             Values.GetEnumerator();
         #endregion
 
-        public void MergeList(OptionsList list)
+        /// <summary>Merge items of a different list into this one.</summary>
+        /// <param name="list">List to merge with this one.</param>
+        /// <param name="silent">When true, this method won't invoke any events.</param>
+        public void MergeList(OptionsList list, bool silent = false)
         {
-            foreach (var item in list)
+            var items = list
+                .Except(this)
+                .Select(x => x.Value)
+                .ToArray();
+
+            foreach (var item in items)
             {
-                if (Values.ContainsKey(item.Key))
+                //Set only value if item already exists
+                if (ContainsKey(item.Name))
                 {
-                    Values[item.Key] = item.Value;
+                    Set(item.Name, item.Value);
                     continue;
                 }
-                
-                Values.Add(item.Key, item.Value);
+
+                //Set the entire item (including default) if doesn't exists
+                Set(item.Name, item);
             }
+
+            if (!silent && items.Length > 0)
+                OnValueSet?.Invoke(items);
         }
 
+        /// <summary>Ensure this list contains every item that's specified in a target list.</summary>
+        /// <param name="list">The target list to pull items from.</param>
         public void EnsureTargets(OptionTargetList list)
         {
             foreach (var item in list)
@@ -140,26 +174,57 @@ namespace qASIC.Options
 
             public event Action<object> OnValueChanged;
 
+            /// <summary>Name of the item.</summary>
             public string Name { get; private set; }
 
             object _value;
+
             public object Value 
             { 
                 get => _value; 
                 set
                 {
-                    _value = value;
-                    OnValueChanged(value);
+                    ChangeValue(value);
                 }
+            }
+
+            /// <summary>Changes the value of the item.</summary>
+            /// <param name="value">The new item of the item.</param>
+            /// <param name="silent">When true, this method won't invoke any events.</param>
+            public void ChangeValue(object value, bool silent = false)
+            {
+                _value = value;
+                if (!silent)
+                    OnValueChanged?.Invoke(value);
             }
 
             public object DefaultValue { get; set; }
 
-            public void ResetToDefault() =>
-                Value = DefaultValue;
+            /// <summary>Reverts the item's value to default.</summary>
+            /// <param name="silent">When true, this method won't invoke any events.</param>
+            public void ResetToDefault(bool silent = false) =>
+                ChangeValue(DefaultValue, silent);
 
             public override string ToString() =>
                 $"{Name}: {Value} (default: {DefaultValue})";
+
+            public static bool operator !=(ListItem a, ListItem b) =>
+                !(a == b);
+
+            public static bool operator ==(ListItem a, ListItem b) =>
+                (ReferenceEquals(a, null) && ReferenceEquals(b, null)) ||
+                (a.Name == b.Name && a.Value == b.Value && a.DefaultValue == b.DefaultValue);
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is ListItem))
+                    return false;
+
+                return this == (ListItem)obj;
+            }
+
+            public override int GetHashCode() =>
+                ToString().GetHashCode();
         }
     }
 }

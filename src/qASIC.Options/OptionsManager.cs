@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualBasic;
-
-namespace qASIC.Options
+﻿namespace qASIC.Options
 {
     public class OptionsManager
     {
@@ -10,43 +8,75 @@ namespace qASIC.Options
         {
             TargetList = targetList;
 
+            OptionsList.OnValueSet += List_OnChanged;
+
             if (ensureListHasAllTargets)
                 EnsureListHasAllTargets();
         }
 
-        public string SavePath { get; set; }
+        private void List_OnChanged(OptionsList.ListItem[] items)
+        {
+            foreach (var item in items)
+                TargetList.Set(item.Name, item.Value);
+        }
 
-        public OptionsList List = new OptionsList();
-        public OptionTargetList TargetList;
+        /// <summary>List containing options and their values.</summary>
+        public OptionsList OptionsList { get; private set; } = new OptionsList();
 
-        public static string FormatKeyString(string s) =>
-            s?.ToLower();
+        /// <summary>List of found options and registered objects.</summary>
+        public OptionTargetList TargetList { get; private set; }
 
+        /// <summary>Formats a <c>string</c> to be used as a key for an option.</summary>
+        /// <param name="text">String to format.</param>
+        /// <returns>The formatted string.</returns>
+        public static string FormatKeyString(string text) =>
+            text?.ToLower();
+
+        /// <summary>Gets the value of an option.</summary>
+        /// <param name="optionName">Name of the option.</param>
+        /// <returns>The value.</returns>
         public object GetOption(string optionName) =>
-            List[optionName];
+            OptionsList[optionName];
 
+        /// <summary>Gets the value of an option.</summary>
+        /// <param name="optionName">Name of the option.</param>
+        /// <param name="defaultValue">Value to use if option doesn't exist on the list.</param>
+        /// <returns>The value.</returns>
         public object GetOption(string optionName, object defaultValue) =>
-            List.TryGetValue(optionName, out var val) ?
+            OptionsList.TryGetValue(optionName, out var val) ?
             val :
             defaultValue;
 
+        /// <summary>Gets the value of an option.</summary>
+        /// <typeparam name="T">Value type.</typeparam>
+        /// <param name="optionName">Name of the option.</param>
+        /// <returns>The value.</returns>
         public T GetOption<T>(string optionName) =>
-            (T)List[optionName].Value;
+            (T)OptionsList[optionName].Value;
 
+        /// <summary>Gets the value of an option.</summary>
+        /// <typeparam name="T">Value type.</typeparam>
+        /// <param name="optionName">Name of the option.</param>
+        /// <param name="defaultValue">Value to use if option doesn't exist on the list.</param>
+        /// <returns>The value.</returns>
         public T GetOption<T>(string optionName, T defaultValue) =>
-            List.TryGetValue(optionName, out var val) ?
+            OptionsList.TryGetValue(optionName, out var val) ?
             (T)val.Value :
             defaultValue;
 
-        public void SetOption(string optionName, object obj)
+        /// <summary>Changes the value of a given option.</summary>
+        /// <param name="optionName">Name of the option.</param>
+        /// <param name="value">Value to set.</param>
+        public void SetOption(string optionName, object value)
         {
-            List.Set(optionName, obj);
+            OptionsList.Set(optionName, value);
         }
 
-        public void SetOption(OptionsList list)
+        /// <summary>Changes values from a different <see cref="Options.OptionsList">.</summary>
+        /// <param name="list">List containing options to set.</param>
+        public void SetOptions(OptionsList list)
         {
-            foreach (var item in list)
-                SetOption(item.Key, item.Value);
+            OptionsList.MergeList(list);
         }
 
         public void Save()
@@ -59,9 +89,10 @@ namespace qASIC.Options
 
         }
 
+        /// <summary>Ensures the list of options is properly generated using the list of targets that were found in <see cref="TargetList"/>.</summary>
         public void EnsureListHasAllTargets()
         {
-            List.EnsureTargets(TargetList);
+            OptionsList.EnsureTargets(TargetList);
         }
     }
 }
