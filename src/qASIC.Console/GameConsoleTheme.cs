@@ -12,28 +12,48 @@ namespace qASIC.Console
         public qColor warningColor = qColor.Yellow;
         public qColor errorColor = qColor.Red;
 
-        public Dictionary<string, qColor> customColors = new Dictionary<string, qColor>();
+        public Dictionary<string, qColor> customColors = new Dictionary<string, qColor>()
+        {
+            ["settings"] = new qColor(0, 0, 255),
+            ["settings_set"] = new qColor(0, 0, 255),
+            ["settings_set_multiple"] = new qColor(0, 0, 255),
+            ["settings_ensure_targets"] = new qColor(0, 0, 255),
+        };
+
+        public qColor this[string s]
+        {
+            get
+            {
+                switch (s)
+                {
+                    case qDebug.DEFAULT_COLOR_TAG:
+                        return defaultColor;
+                    case qDebug.WARNING_COLOR_TAG:
+                        return warningColor;
+                    case qDebug.ERROR_COLOR_TAG:
+                        return errorColor;
+                    default:
+                        return customColors.TryGetValue(s, out var cl) ? cl : defaultColor;
+                }
+            }
+            set
+            {
+                if (customColors.ContainsKey(s))
+                {
+                    customColors[s] = value;
+                    return;
+                }
+
+                customColors.Add(s, value);
+            }
+        }
 
         public qColor GetLogColor(qLog log)
         {
-            switch (log.colorTag)
-            {
-                case null:
-                    return log.color;
-                case qDebug.DEFAULT_COLOR_TAG:
-                    return defaultColor;
-                case qDebug.WARNING_COLOR_TAG:
-                    return warningColor;
-                case qDebug.ERROR_COLOR_TAG:
-                    return errorColor;
-                default:
-                    if (customColors.ContainsKey(log.colorTag))
-                        return customColors[log.colorTag];
+            if (log.colorTag == null)
+                return log.color;
 
-                    break;
-            }
-
-            return defaultColor;
+            return this[log.colorTag];
         }
 
         public void Read(Packet packet)

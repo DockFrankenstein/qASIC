@@ -1,6 +1,9 @@
-﻿namespace qASIC.Options
+﻿using qASIC.Core.Interfaces;
+using System.Linq;
+
+namespace qASIC.Options
 {
-    public class OptionsManager
+    public class OptionsManager : ILoggable
     {
         public OptionsManager() : this(new OptionTargetList().FindOptions()) { }
 
@@ -19,6 +22,9 @@
             foreach (var item in items)
                 TargetList.Set(item.Name, item.Value);
         }
+
+        public LogManager Logs { get; set; } = new LogManager();
+        public ILoggable[] Loggables => new ILoggable[0];
 
         /// <summary>List containing options and their values.</summary>
         public OptionsList OptionsList { get; private set; } = new OptionsList();
@@ -70,6 +76,7 @@
         public void SetOption(string optionName, object value)
         {
             OptionsList.Set(optionName, value);
+            Logs.Log($"Changed option '{optionName}' to '{value}'.", "settings_set");
         }
 
         /// <summary>Changes values from a different <see cref="Options.OptionsList">.</summary>
@@ -77,6 +84,7 @@
         public void SetOptions(OptionsList list)
         {
             OptionsList.MergeList(list);
+            Logs.Log($"Applied options: {string.Join("\n", list.Select(x => $"- {x}"))}", "settings_set_multiple");
         }
 
         public void Save()
@@ -93,6 +101,7 @@
         public void EnsureListHasAllTargets()
         {
             OptionsList.EnsureTargets(TargetList);
+            Logs.Log($"Created options from target list.", "settings_ensure_targets");
         }
     }
 }
