@@ -35,7 +35,7 @@ namespace qASIC.Console.Commands
         /// <param name="type">Type of attribute used by target commands.</param>
         public GameCommandList FindCommands(Type type)
         {
-            var commandTypes = TypeFinder.FindAllClassesWithAttribute(type, BindingFlags.Public | BindingFlags.NonPublic)
+            var commandTypes = TypeFinder.FindClassesWithAttribute(type, BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(x => typeof(IGameCommand).IsAssignableFrom(x));
 
             var commands = TypeFinder.CreateConstructorsFromTypes<IGameCommand>(commandTypes);
@@ -57,13 +57,13 @@ namespace qASIC.Console.Commands
         {
             const BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-            var methods = TypeFinder.FindMethodsAttributes(type, bindingFlags)
+            var methods = TypeFinder.FindMethodsWithAttribute(type, bindingFlags)
                 .Select(x => x as MemberInfo);
 
-            var fields = TypeFinder.FindFieldAttributes(type, bindingFlags)
+            var fields = TypeFinder.FindFieldsWithAttribute(type, bindingFlags)
                 .Select(x => x as MemberInfo);
 
-            var properties = TypeFinder.FindPropertyAttributes(type, bindingFlags)
+            var properties = TypeFinder.FindPropertiesWithAttribute(type, bindingFlags)
                 .Select(x => x as MemberInfo);
 
             var targets = methods

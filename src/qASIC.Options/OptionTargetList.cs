@@ -45,9 +45,9 @@ namespace qASIC.Options
 
         public OptionTargetList FindOptions<TOption>() where TOption : OptionAttribute
         {
-            var methods = TypeFinder.FindMethodsAttributes<TOption>(Flags);
-            var properties = TypeFinder.FindPropertyAttributes<TOption>(Flags);
-            var fields = TypeFinder.FindFieldAttributes<TOption>(Flags);
+            var methods = TypeFinder.FindMethodsWithAttribute<TOption>(Flags);
+            var properties = TypeFinder.FindPropertiesWithAttribute<TOption>(Flags);
+            var fields = TypeFinder.FindFieldsWithAttribute<TOption>(Flags);
 
             foreach (var item in methods)
             {

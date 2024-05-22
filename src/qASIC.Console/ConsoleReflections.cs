@@ -15,16 +15,16 @@ namespace qASIC.Console
 
         public override void Initialize()
         {
-            ColorAttributeMethods = TypeFinder.FindMethodsAttributes<LogColorAttribute>()
+            ColorAttributeMethods = TypeFinder.FindMethodsWithAttribute<LogColorAttribute>()
                 .ToDictionary(x => CreateMethodId(x), x => x.GetCustomAttribute<LogColorAttribute>()!);
 
-            ColorAttributeDeclaringTypes = TypeFinder.FindAllClassesWithAttribute<LogColorAttribute>()
+            ColorAttributeDeclaringTypes = TypeFinder.FindClassesWithAttribute<LogColorAttribute>()
                 .ToDictionary(x => CreateTypeId(x), x => x.GetCustomAttribute<LogColorAttribute>()!);
 
-            PrefixAttributeMethods = TypeFinder.FindMethodsAttributes<LogPrefixAttribute>()
+            PrefixAttributeMethods = TypeFinder.FindMethodsWithAttribute<LogPrefixAttribute>()
                 .ToDictionary(x => CreateMethodId(x), x => x.GetCustomAttribute<LogPrefixAttribute>()!);
 
-            PrefixAttributeDeclaringTypes = TypeFinder.FindAllClassesWithAttribute<LogPrefixAttribute>()
+            PrefixAttributeDeclaringTypes = TypeFinder.FindClassesWithAttribute<LogPrefixAttribute>()
                 .ToDictionary(x => CreateTypeId(x), x => x.GetCustomAttribute<LogPrefixAttribute>()!);
         }
 

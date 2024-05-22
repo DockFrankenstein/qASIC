@@ -21,63 +21,72 @@ namespace qASIC
 
         #region Attributes
         //Classes
-        public static IEnumerable<Type> FindAllClassesWithAttribute<T>(BindingFlags bindingFlags = _DEFAULT_FLAGS)
+        public static IEnumerable<Type> FindClassesWithAttribute<T>(BindingFlags bindingFlags = _DEFAULT_FLAGS)
             where T : Attribute =>
-            FindAllClassesWithAttribute(typeof(T), bindingFlags);
+            FindClassesWithAttribute(typeof(T), bindingFlags);
 
-        public static IEnumerable<Type> FindAllClassesWithAttribute(Type type, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
+        public static IEnumerable<Type> FindClassesWithAttribute(Type type, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
             AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
                 .Where(x => x.IsClass)
                 .Where(x => x.GetCustomAttributes(type, false).Count() > 0);
 
         //Methods
-        public static IEnumerable<MethodInfo> FindMethodsAttributes<T>(BindingFlags bindingFlags = _DEFAULT_FLAGS)
-            where T : Attribute =>
-            FindMethodsAttributes(typeof(T), bindingFlags);
+        public static IEnumerable<MethodInfo> FindMethodsWithAttributeInClass<TClass, TAttribute>(BindingFlags bindingFlags = _DEFAULT_FLAGS)
+            where TClass : class
+            where TAttribute : Attribute =>
+            FindMethodsWithAttributeInClass(typeof(TClass), typeof(TAttribute), bindingFlags);
 
-        public static IEnumerable<MethodInfo> FindMethodsAttributes(Type type, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
+        public static IEnumerable<MethodInfo> FindMethodsWithAttributeInClass(Type classType, Type attributeType, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
+            classType.GetMethods(bindingFlags)
+                .Where(x => x.GetCustomAttributes(attributeType, false).Count() > 0);
+
+        public static IEnumerable<MethodInfo> FindMethodsWithAttribute<T>(BindingFlags bindingFlags = _DEFAULT_FLAGS)
+            where T : Attribute =>
+            FindMethodsWithAttribute(typeof(T), bindingFlags);
+
+        public static IEnumerable<MethodInfo> FindMethodsWithAttribute(Type type, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
             AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
                 .Where(x => x.IsClass)
                 .SelectMany(x => x.GetMethods(bindingFlags))
-                .Where(x => x.GetCustomAttributes(type, false).FirstOrDefault() != null);
+                .Where(x => x.GetCustomAttributes(type, false).Count() > 0);
 
         //Fields
-        public static IEnumerable<FieldInfo> FindFieldAttributesInClass<TClass, TAttribute>(BindingFlags bindingFlags = _DEFAULT_FLAGS)
+        public static IEnumerable<FieldInfo> FindFieldsWithAttributeInClass<TClass, TAttribute>(BindingFlags bindingFlags = _DEFAULT_FLAGS)
             where TClass : class
             where TAttribute : Attribute =>
-            FindFieldAttributesInClass(typeof(TClass), typeof(TAttribute), bindingFlags);
+            FindFieldsWithAttributeInClass(typeof(TClass), typeof(TAttribute), bindingFlags);
 
-        public static IEnumerable<FieldInfo> FindFieldAttributesInClass(Type classType, Type attributeType, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
+        public static IEnumerable<FieldInfo> FindFieldsWithAttributeInClass(Type classType, Type attributeType, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
             classType.GetFields(bindingFlags)
-                .Where(x => x.GetCustomAttributes(attributeType, false).FirstOrDefault() != null);
+                .Where(x => x.GetCustomAttributes(attributeType, false).Count() > 0);
 
-        public static IEnumerable<FieldInfo> FindFieldAttributes<TAttribute>(BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
-            FindFieldAttributes(typeof(TAttribute), bindingFlags);
+        public static IEnumerable<FieldInfo> FindFieldsWithAttribute<TAttribute>(BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
+            FindFieldsWithAttribute(typeof(TAttribute), bindingFlags);
 
-        public static IEnumerable<FieldInfo> FindFieldAttributes(Type attributeType, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
+        public static IEnumerable<FieldInfo> FindFieldsWithAttribute(Type attributeType, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
             AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
-                .SelectMany(x => FindFieldAttributesInClass(x, attributeType, bindingFlags));
+                .SelectMany(x => FindFieldsWithAttributeInClass(x, attributeType, bindingFlags));
 
         //Properties
-        public static IEnumerable<PropertyInfo> FindPropertyAttributesInClass<TClass, TAttribute>(BindingFlags bindingFlags = _DEFAULT_FLAGS)
+        public static IEnumerable<PropertyInfo> FindPropertiesWithAttributeInClass<TClass, TAttribute>(BindingFlags bindingFlags = _DEFAULT_FLAGS)
             where TClass : class
             where TAttribute : Attribute =>
-                FindPropertyAttributesInClass(typeof(TClass), typeof(TAttribute), bindingFlags);
+                FindPropertiesWithAttributeInClass(typeof(TClass), typeof(TAttribute), bindingFlags);
 
-        public static IEnumerable<PropertyInfo> FindPropertyAttributesInClass(Type classType, Type attributeType, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
+        public static IEnumerable<PropertyInfo> FindPropertiesWithAttributeInClass(Type classType, Type attributeType, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
             classType.GetProperties(bindingFlags)
-                .Where(x => x.GetCustomAttributes(attributeType, false).FirstOrDefault() != null);
+                .Where(x => x.GetCustomAttributes(attributeType, false).Count() > 0);
 
-        public static IEnumerable<PropertyInfo> FindPropertyAttributes<TAttribute>(BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
-            FindPropertyAttributes(typeof(TAttribute), bindingFlags);
+        public static IEnumerable<PropertyInfo> FindPropertiesWithAttribute<TAttribute>(BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
+            FindPropertiesWithAttribute(typeof(TAttribute), bindingFlags);
 
-        public static IEnumerable<PropertyInfo> FindPropertyAttributes(Type attributeType, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
+        public static IEnumerable<PropertyInfo> FindPropertiesWithAttribute(Type attributeType, BindingFlags bindingFlags = _DEFAULT_FLAGS) =>
             AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
-                .SelectMany(x => FindPropertyAttributesInClass(x, attributeType, bindingFlags));
+                .SelectMany(x => FindPropertiesWithAttributeInClass(x, attributeType, bindingFlags));
         #endregion
 
         public static object CreateConstructorFromType(Type type) =>
