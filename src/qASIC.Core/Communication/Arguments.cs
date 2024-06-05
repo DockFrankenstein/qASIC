@@ -14,15 +14,15 @@
 
     public class CommsComponentArgs
     {
-        public CommsComponentArgs(PacketType packetType, Packet packet)
+        public CommsComponentArgs(PacketType packetType, qPacket packet)
         {
             this.packet = packet;
             this.packetType = packetType;
         }
 
         public PacketType packetType;
-        public Packet packet;
-        public Client client;
+        public qPacket packet;
+        public qClient client;
         public Server server;
 
         public Server.Client targetServerClient;

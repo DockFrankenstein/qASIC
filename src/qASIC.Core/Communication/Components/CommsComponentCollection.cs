@@ -54,7 +54,7 @@ namespace qASIC.Communication.Components
                 .Where(x => type.IsAssignableFrom(x.GetType()))
                 .ToArray();
 
-        public void HandlePacketForServer(Server server, Server.Client serverClient, Packet packet)
+        public void HandlePacketForServer(Server server, Server.Client serverClient, qPacket packet)
         {
             var id = packet.ReadString();
 
@@ -77,7 +77,7 @@ namespace qASIC.Communication.Components
             targetComp.Read(args);
         }
 
-        public void HandlePacketForClient(Client client, Packet packet)
+        public void HandlePacketForClient(qClient client, qPacket packet)
         {
             var id = packet.ReadString();
 

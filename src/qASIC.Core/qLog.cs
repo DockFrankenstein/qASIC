@@ -58,7 +58,7 @@ namespace qASIC
         public override string ToString() =>
             $"[{time:HH:mm:ss}] [{logType}] {message}";
 
-        public Packet Write(Packet packet) =>
+        public qPacket Write(qPacket packet) =>
             packet
             .Write(time.Ticks)
             .Write(message)
@@ -67,7 +67,7 @@ namespace qASIC
             .Write(colorTag ?? string.Empty)
             .Write(color);
         
-        public void Read(Packet packet)
+        public void Read(qPacket packet)
         {
             time = new DateTime(packet.ReadLong());
             message = packet.ReadString();

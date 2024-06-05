@@ -22,7 +22,7 @@ namespace qASIC
         public bool UsesSystem(string systemName) =>
             systems.Any(x => x.name == systemName);
 
-        public override Packet Write(Packet packet)
+        public override qPacket Write(qPacket packet)
         {
             base.Write(packet)
                 .Write(projectName)
@@ -38,7 +38,7 @@ namespace qASIC
             return packet;
         }
 
-        public override void Read(Packet packet)
+        public override void Read(qPacket packet)
         {
             base.Read(packet);
             projectName = packet.ReadString();

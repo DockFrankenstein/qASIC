@@ -6,14 +6,12 @@ namespace qASIC
 {
     public class qInstance
     {
-        public const int DEFAULT_REMOTE_PORT = 8174;
-
         public qInstance(RemoteAppInfo appInfo = null)
         {
             RemoteInspectorComponents = CommsComponentCollection.GetStandardCollection()
                 .AddComponent(cc_log);
 
-            RemoteInspectorServer = new Server(RemoteInspectorComponents, DEFAULT_REMOTE_PORT);
+            RemoteInspectorServer = new Server(RemoteInspectorComponents, Constants.DEFAULT_PORT);
             AppInfo = appInfo ?? new RemoteAppInfo();
         }
 

@@ -27,7 +27,7 @@ namespace qASIC.Communication.Components
 
                     args.client?.OnLog?.Invoke($"Connected to project using protocol version: {info.protocolVersion}");
                     args.client.AppInfo = info;
-                    args.client.CurrentState = Client.State.Connected;
+                    args.client.CurrentState = qClient.State.Connected;
                     args.client.receivedPing = true;
                     args.client.OnLog?.Invoke("Client connected");
                     args.client.OnConnect?.Invoke();
@@ -37,10 +37,10 @@ namespace qASIC.Communication.Components
             }
         }
 
-        public static Packet CreateClientConfirmationPacket() =>
+        public static qPacket CreateClientConfirmationPacket() =>
             new CC_ConnectData().CreateEmptyComponentPacket();
 
-        public static Packet CreateServerResponsePacket(Server server) =>
+        public static qPacket CreateServerResponsePacket(Server server) =>
             new CC_ConnectData().CreateEmptyComponentPacket()
             .Write(server.AppInfo);
     }

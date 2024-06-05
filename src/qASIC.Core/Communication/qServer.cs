@@ -130,14 +130,14 @@ namespace qASIC.Communication
         {
             byte[] buffer = (byte[])args.data.Clone();
 
-            var packet = new Packet(buffer);
+            var packet = new qPacket(buffer);
 
             Components.HandlePacketForServer(this, args.client, packet);
         }
         #endregion
 
         #region Send
-        public void Send(Client client, Packet packet)
+        public void Send(Client client, qPacket packet)
         {
             try
             {
@@ -153,14 +153,14 @@ namespace qASIC.Communication
             }
         }
 
-        public void SendToAll(Packet packet)
+        public void SendToAll(qPacket packet)
         {
             for (int i = 0; i < Clients.Count; i++)
                 if (Clients[i] != null)
                     Send(Clients[i], packet);
         }
 
-        void IPeer.Send(Packet packet) =>
+        void IPeer.Send(qPacket packet) =>
             SendToAll(packet);
         #endregion
 

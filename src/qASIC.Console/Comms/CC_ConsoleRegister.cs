@@ -28,7 +28,7 @@ namespace qASIC.Console.Comms
         public override void ReadForConsole(CommsComponentArgs args, GameConsole console) =>
             throw new NotImplementedException();
 
-        public static Packet CreatePacket(GameConsole console)
+        public static qPacket CreatePacket(GameConsole console)
         {
             var packet = new CC_ConsoleRegister().CreateEmptyPacketForConsole(console);
 

@@ -4,7 +4,7 @@ namespace qASIC.Communication
 {
     public interface IPeer
     {
-        void Send(Packet packet);
+        void Send(qPacket packet);
         CommsComponentCollection Components { get; }
     }
 }

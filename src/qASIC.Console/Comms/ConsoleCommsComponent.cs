@@ -22,7 +22,7 @@ namespace qASIC.Console.Comms
 
         public abstract void ReadForConsole(CommsComponentArgs args, GameConsole console);
 
-        public Packet CreateEmptyPacketForConsole(GameConsole console) =>
+        public qPacket CreateEmptyPacketForConsole(GameConsole console) =>
             CreateEmptyComponentPacket()
             .Write(console.Name);
     }

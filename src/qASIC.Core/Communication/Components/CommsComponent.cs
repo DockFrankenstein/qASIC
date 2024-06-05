@@ -7,7 +7,7 @@
 
         public abstract void Read(CommsComponentArgs args);
 
-        public Packet CreateEmptyComponentPacket() =>
-            new Packet().Write(GetId());
+        public qPacket CreateEmptyComponentPacket() =>
+            new qPacket().Write(GetId());
     }
 }

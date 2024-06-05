@@ -1,6 +1,7 @@
 ﻿using qASIC.Core.Interfaces;
 using System;
 using System.Linq;
+using System.Threading;
 
 namespace qASIC.Options
 {
@@ -17,6 +18,9 @@ namespace qASIC.Options
 
             if (ensureListHasAllTargets)
                 EnsureListHasAllTargets();
+
+            Revert();
+            Apply();
         }
 
         private void List_OnChanged(OptionsList.ListItem[] items)
@@ -29,6 +33,8 @@ namespace qASIC.Options
         public ILoggable[] Loggables => new ILoggable[0];
 
         public OptionsSerializer Serializer { get; set; }
+
+        public OptionsList FinalOptionsList { get; private set; } = new OptionsList();
 
         /// <summary>List containing options and their values.</summary>
         public OptionsList OptionsList { get; private set; } = new OptionsList();
@@ -83,6 +89,16 @@ namespace qASIC.Options
             Logs.Log($"Changed option '{optionName}' to '{value}'.", "settings_set");
         }
 
+        /// <summary>Changes the value of a given option and applies it. 
+        /// It's the same as calling <see cref="SetOption(string, object)"/> and <see cref="Apply"/>.</summary>
+        /// <param name="optionName">Name of the option.</param>
+        /// <param name="value">Value to set.</param>
+        public void SetOptionAndApply(string optionName, object value)
+        {
+            SetOption(optionName, value);
+            Apply();
+        }
+
         /// <summary>Changes values from a different <see cref="Options.OptionsList">.</summary>
         /// <param name="list">List containing options to set.</param>
         public void SetOptions(OptionsList list)
@@ -91,7 +107,17 @@ namespace qASIC.Options
             Logs.Log($"Applied options: {string.Join("\n", list.Select(x => $"- {x}"))}", "settings_set_multiple");
         }
 
-        public void Save()
+        /// <summary>Changes values from a different <see cref="Options.OptionsList"> and applies them 
+        /// It's the same as calling <see cref="SetOptions"/> and <see cref="Apply"/>.</summary>
+        /// <param name="list">List containing options to set.</param>
+        public void SetOptionsAndApply(OptionsList list)
+        {
+            SetOptions(list);
+            Apply();
+        }
+
+        /// <summary>Applies currently set options by saving them.</summary>
+        public void Apply()
         {
             try
             {
@@ -106,7 +132,8 @@ namespace qASIC.Options
             Logs.Log($"Successfully saved options at {Serializer.Path}", "settings_save_success");
         }
 
-        public void Load()
+        /// <summary>Reverts options from the save file.</summary>
+        public void Revert()
         {
             try
             {

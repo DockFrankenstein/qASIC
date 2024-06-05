@@ -18,7 +18,7 @@ namespace qASIC.Console.Comms
             OnRead?.Invoke(console, log);
         }
 
-        public static Packet BuildPacket(GameConsole console, qLog log) =>
+        public static qPacket BuildPacket(GameConsole console, qLog log) =>
             new CC_ConsoleLog().CreateEmptyPacketForConsole(console)
             .Write(log);
     }

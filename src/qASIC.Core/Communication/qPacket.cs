@@ -5,11 +5,11 @@ using System;
 
 namespace qASIC.Communication
 {
-    public class Packet
+    public class qPacket
     {
-        public Packet() : this(new byte[0]) { }
+        public qPacket() : this(new byte[0]) { }
 
-        public Packet(byte[] bytes)
+        public qPacket(byte[] bytes)
         {
             this.bytes = new List<byte>(bytes);
         }
@@ -64,23 +64,23 @@ namespace qASIC.Communication
             return serializable;
         }
 
-        public Packet WriteBytes(params byte[] data)
+        public qPacket WriteBytes(params byte[] data)
         {
             bytes.AddRange(data);
             return this;
         }
 
-        public Packet Write(bool value) => WriteBytes(BitConverter.GetBytes(value));
-        public Packet Write(byte value) => WriteBytes(value);
-        public Packet Write(sbyte value) => WriteBytes(unchecked((byte)value));
-        public Packet Write(int value) => WriteBytes(BitConverter.GetBytes(value));
-        public Packet Write(uint value) => WriteBytes(BitConverter.GetBytes(value));
-        public Packet Write(float value) => WriteBytes(BitConverter.GetBytes(value));
-        public Packet Write(double value) => WriteBytes(BitConverter.GetBytes(value));
-        public Packet Write(long value) => WriteBytes(BitConverter.GetBytes(value));
-        public Packet Write(ulong value) => WriteBytes(BitConverter.GetBytes(value));
+        public qPacket Write(bool value) => WriteBytes(BitConverter.GetBytes(value));
+        public qPacket Write(byte value) => WriteBytes(value);
+        public qPacket Write(sbyte value) => WriteBytes(unchecked((byte)value));
+        public qPacket Write(int value) => WriteBytes(BitConverter.GetBytes(value));
+        public qPacket Write(uint value) => WriteBytes(BitConverter.GetBytes(value));
+        public qPacket Write(float value) => WriteBytes(BitConverter.GetBytes(value));
+        public qPacket Write(double value) => WriteBytes(BitConverter.GetBytes(value));
+        public qPacket Write(long value) => WriteBytes(BitConverter.GetBytes(value));
+        public qPacket Write(ulong value) => WriteBytes(BitConverter.GetBytes(value));
 
-        public Packet Write(string value)
+        public qPacket Write(string value)
         {
             if (value == string.Empty)
             {
@@ -93,7 +93,7 @@ namespace qASIC.Communication
             return WriteBytes(textBytes);
         }
 
-        public Packet Write(INetworkSerializable item) =>
+        public qPacket Write(INetworkSerializable item) =>
             item.Write(this);
 
         public override string ToString() =>

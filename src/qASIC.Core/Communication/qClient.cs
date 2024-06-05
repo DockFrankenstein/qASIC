@@ -6,9 +6,13 @@ using qASIC.Communication.Components;
 
 namespace qASIC.Communication
 {
-    public class Client : IPeer
+    public class qClient : IPeer
     {
-        public Client(CommsComponentCollection components, IPAddress address, int port, int maxConnectionAttempts = 5)
+        public qClient(CommsComponentCollection components, int maxConnectionAttempts = 5) : 
+            this(components, IPAddress.Parse("127.0.0.1"), Constants.DEFAULT_PORT, maxConnectionAttempts)
+        { }
+
+        public qClient(CommsComponentCollection components, IPAddress address, int port, int maxConnectionAttempts = 5)
         {
             Components = components;
 
@@ -61,7 +65,7 @@ namespace qASIC.Communication
         public Action OnStart;
         public Action OnConnect;
         public Action<DisconnectReason> OnDisconnect;
-        public Func<Packet, NetworkServerInfo> ProcessAppInfo = null;
+        public Func<qPacket, NetworkServerInfo> ProcessAppInfo = null;
 
         private byte[] buffer = new byte[0];
         private System.Diagnostics.Stopwatch time = new System.Diagnostics.Stopwatch();
@@ -91,10 +95,16 @@ namespace qASIC.Communication
             }
         }
 
-        public void Connect()
+        public void Connect() =>
+            Connect(Address, Port);
+
+        public void Connect(IPAddress address, int port)
         {
             if (IsActive)
                 throw new Exception("Cannot connect client, client is already active!");
+
+            Address = address;
+            Port = port;
 
             OnStart?.Invoke();
             OnLog?.Invoke("Starting client...");
@@ -125,14 +135,6 @@ namespace qASIC.Communication
                 OnLog?.Invoke($"[Error] Failed to connect client: {e}");
                 Disconnect(DisconnectReason.Error);
             }
-        }
-
-        public void ChangePort(int port)
-        {
-            if (IsActive)
-                throw new Exception("Cannot change credentials when client is active!");
-
-            Port = port;
         }
 
         void Heartbeat(IAsyncResult result)
@@ -222,7 +224,7 @@ namespace qASIC.Communication
                 byte[] temp = new byte[length];
                 Array.Copy(buffer, temp, length);
 
-                var packet = new Packet(temp);
+                var packet = new qPacket(temp);
 
                 Components.HandlePacketForClient(this, packet);
 
@@ -235,7 +237,7 @@ namespace qASIC.Communication
             }
         }
 
-        public void Send(Packet packet)
+        public void Send(qPacket packet)
         {
             try
             {

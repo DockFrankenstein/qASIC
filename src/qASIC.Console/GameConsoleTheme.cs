@@ -56,7 +56,7 @@ namespace qASIC.Console
             return this[log.colorTag];
         }
 
-        public void Read(Packet packet)
+        public void Read(qPacket packet)
         {
             customColors.Clear();
             int colorCount = packet.ReadInt();
@@ -68,7 +68,7 @@ namespace qASIC.Console
             errorColor = packet.ReadNetworkSerializable<qColor>();
         }
 
-        public Packet Write(Packet packet)
+        public qPacket Write(qPacket packet)
         {
             packet = packet
                 .Write(customColors.Count);

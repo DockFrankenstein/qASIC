@@ -10,7 +10,7 @@
                     args.server.DisconnectClientLocal(args.targetServerClient);
                     break;
                 case PacketType.Client:
-                    args.client.DisconnectLocal(Client.DisconnectReason.ServerShutdown);
+                    args.client.DisconnectLocal(qClient.DisconnectReason.ServerShutdown);
                     break;
             }
         }

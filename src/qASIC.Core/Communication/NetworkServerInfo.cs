@@ -4,10 +4,10 @@
     {
         public uint protocolVersion = Constants.PROTOCOL_VERSION;
 
-        public virtual void Read(Packet packet) =>
+        public virtual void Read(qPacket packet) =>
             protocolVersion = packet.ReadUInt();
 
-        public virtual Packet Write(Packet packet) =>
+        public virtual qPacket Write(qPacket packet) =>
             packet.Write(protocolVersion);
     }
 }

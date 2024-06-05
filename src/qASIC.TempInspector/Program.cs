@@ -11,7 +11,7 @@ namespace qASICRemote
     {
         const int UPDATE_FREQUENCY = 200;
 
-        public static Client? client = null;
+        public static qClient? client = null;
 
         public static qInstance? QasicInstance = null;
         public static GameConsole? GConsole = null;
@@ -42,7 +42,7 @@ namespace qASICRemote
 
             QasicInstance.cc_log.OnReceiveLog += Cc_log_OnReceiveLog;
 
-            client = new Client(QasicInstance.RemoteInspectorComponents, IPAddress.Parse("127.0.0.1"), qInstance.DEFAULT_REMOTE_PORT)
+            client = new qClient(QasicInstance.RemoteInspectorComponents, IPAddress.Parse("127.0.0.1"), Constants.DEFAULT_PORT)
             {
                 AppInfo = new RemoteAppInfo(),
             };
@@ -82,7 +82,7 @@ namespace qASICRemote
                     continue;
                 }
 
-                if (client.CurrentState != Client.State.Connected)
+                if (client.CurrentState != qClient.State.Connected)
                 {
                     GConsole.LogError("Currently not connected to any application. Use '.' prefix to run commands for this application!");
                     continue;
@@ -133,7 +133,7 @@ namespace qASICRemote
 
         [Command("connect")]
         private static void Connect(bool autoconnect) =>
-            Connect(client?.Port ?? qInstance.DEFAULT_REMOTE_PORT, autoconnect);
+            Connect(client?.Port ?? Constants.DEFAULT_PORT, autoconnect);
 
         [Command("connect")]
         private static void Connect(int port) =>
@@ -151,10 +151,7 @@ namespace qASICRemote
                 return;
             }
 
-            if (port != client.Port)
-                client.ChangePort(port);
-
-            client.Connect();
+            client.Connect(client.Address, port);
         }
 
         [Command("lc")]
@@ -196,11 +193,11 @@ namespace qASICRemote
             GConsole?.Log($"Used systems by projects:{string.Join(string.Empty, systems)}");
         }
 
-        private static void Client_OnDisconnect(Client.DisconnectReason reason)
+        private static void Client_OnDisconnect(qClient.DisconnectReason reason)
         {
             switch (reason)
             {
-                case Client.DisconnectReason.None:
+                case qClient.DisconnectReason.None:
                     return;
                 default:
                     if (AutoConnect)

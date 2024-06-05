@@ -14,7 +14,7 @@ namespace qASIC.CommComponents
             OnReceiveLog?.Invoke(log, args.packetType);
         }
 
-        public static Packet BuildLogPacket(qLog log) =>
+        public static qPacket BuildLogPacket(qLog log) =>
             new CC_Log().CreateEmptyComponentPacket()
             .Write(log);
     }

@@ -59,7 +59,7 @@ namespace qASIC
                 _ => Clear,
             };
 
-        public void Read(Packet packet)
+        public void Read(qPacket packet)
         {
             red = packet.ReadByte();
             green = packet.ReadByte();
@@ -67,7 +67,7 @@ namespace qASIC
             alpha = packet.ReadByte();
         }
 
-        public Packet Write(Packet packet) =>
+        public qPacket Write(qPacket packet) =>
             packet
             .Write(red)
             .Write(green)

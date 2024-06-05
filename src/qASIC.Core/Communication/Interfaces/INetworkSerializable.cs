@@ -2,7 +2,7 @@
 {
     public interface INetworkSerializable
     {
-        void Read(Packet packet);
-        Packet Write(Packet packet);
+        void Read(qPacket packet);
+        qPacket Write(qPacket packet);
     }
 }

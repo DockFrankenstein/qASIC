@@ -11,7 +11,7 @@ namespace qASIC.Console
 {
     public class InstanceConsoleManager : IEnumerable<RegisteredConsole>, IEnumerable
     {
-        public InstanceConsoleManager(Client client) : this(client as IPeer) { }
+        public InstanceConsoleManager(qClient client) : this(client as IPeer) { }
         public InstanceConsoleManager(Server server) : this(server as IPeer) { }
         public InstanceConsoleManager(IPeer peer)
         {
@@ -34,7 +34,7 @@ namespace qASIC.Console
                 };
             }
 
-            if (Peer is Client client)
+            if (Peer is qClient client)
             {
                 client.OnDisconnect += _ =>
                 {
@@ -117,7 +117,7 @@ namespace qASIC.Console
 
             public void SendCommand(string cmd)
             {
-                if (!(manager.Peer is Client client))
+                if (!(manager.Peer is qClient client))
                     throw new Exception("Only clients can send commands!");
 
                 var packet = CC_ExecuteCommand.BuildPacket(Console, cmd);
