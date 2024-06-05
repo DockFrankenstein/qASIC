@@ -47,8 +47,8 @@ namespace qASIC.Options
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
-            using (var writer = new StreamWriter(Path))
-                writer.Write(txt);
+            //using (var writer = new StreamWriter(Path))
+            //    writer.Write(txt);
         }
 
         public void Load(OptionsList list)

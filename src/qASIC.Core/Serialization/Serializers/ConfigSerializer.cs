@@ -191,7 +191,80 @@ namespace qASIC.Serialization.Serializers
 
         void OverrideMemberFromConfig(ConfigValue configValue, ref object obj, Type type)
         {
-            if (IsSimple(type))
+            if (obj is IDictionary dict)
+            {
+                var dictArgs = dict.GetType().GetGenericArguments();
+                var keyType = dictArgs[0];
+                var valType = dictArgs[1];
+
+                foreach (var item in configValue)
+                {
+                    try
+                    {
+                        var key = Convert.ChangeType(item.Key, keyType);
+                        object val = null;
+                        OverrideMemberFromConfig(item.Value, ref val, valType);
+
+                        if (dict.Contains(key))
+                        {
+                            dict[key] = val;
+                            continue;
+                        }
+
+                        dict.Add(key, val);
+                    }
+                    catch { }
+                }
+
+                return;
+            }
+
+            if (obj is IEnumerable<object> enumerable)
+            {
+                var elType = type.GetElementType() ?? type.GetGenericArguments().Single();
+                var isSimple = IsSimple(elType);
+
+                if (isSimple)
+                {
+                    var simpleItems = configValue.ArrayValue
+                        .SelectMany(x =>
+                        {
+                            try
+                            {
+                                object val = Convert.ChangeType(x, elType);
+                                return new object[] { val };
+                            }
+                            catch { }
+                            return new object[0];
+                        });
+
+                    try
+                    {
+                        obj = Convert.ChangeType(simpleItems, type);
+                    }
+                    catch { }
+
+                    return;
+                }
+
+                var items = configValue
+                    .Select(x =>
+                    {
+                        object val = null;
+                        OverrideMemberFromConfig(x.Value, ref val, elType);
+                        return val;
+                    });
+
+                try
+                {
+                    obj = Convert.ChangeType(items, type);
+                }
+                catch { }
+
+                return;
+            }
+
+            if (IsSimple(type) || type.IsAssignableFrom(typeof(object)))
             {
                 obj = Convert.ChangeType(configValue.Value, type);
                 return;

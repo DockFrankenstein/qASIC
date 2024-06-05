@@ -112,12 +112,12 @@ namespace qASIC.Options
                 //Set only value if item already exists
                 if (ContainsKey(item.Name))
                 {
-                    Set(item.Name, item.Value);
+                    Set(item.Name, item.Value, true);
                     continue;
                 }
 
                 //Set the entire item (including default) if doesn't exists
-                Set(item.Name, item);
+                Set(item.Name, item, true);
             }
 
             if (!silent && items.Length > 0)
