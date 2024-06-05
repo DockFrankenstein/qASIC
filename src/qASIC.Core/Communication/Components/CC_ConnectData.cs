@@ -12,6 +12,8 @@ namespace qASIC.Communication.Components
             {
                 case PacketType.Server:
                     args.server.Send(args.targetServerClient, CreateServerResponsePacket(args.server));
+                    args.server.OnLog?.Invoke($"Client connected id: '{args.targetServerClient.id}'");
+                    args.server.OnClientConnect?.Invoke(args.targetServerClient);
                     break;
                 case PacketType.Client:
                     var info = args.client.ProcessAppInfo == null ?

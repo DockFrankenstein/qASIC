@@ -27,7 +27,7 @@ namespace qASIC.Communication
 
         public TcpListener Listener { get; private set; }
 
-        public event Action<Client> OnClientConnect;
+        public Action<Client> OnClientConnect;
         public Action<string> OnLog;
 
         int nextClientId;
@@ -117,8 +117,7 @@ namespace qASIC.Communication
 
                 nextClientId++;
 
-                OnLog?.Invoke($"Client connected id: '{newClient.id}'");
-                OnClientConnect?.Invoke(newClient);
+                OnLog?.Invoke($"Connection received, creating client id: {newClient.id}");
             }
             catch (Exception e)
             {
