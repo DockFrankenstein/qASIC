@@ -16,11 +16,22 @@ namespace qASIC.Console.Commands
 
         public string CommandName { get; set; }
 
-        public string[] Aliases { get; set; } = new string[0];
+        public string[] Aliases => Targets
+            .Select(x => x.attr.Aliases)
+            .Where(x => x != null)
+            .SelectMany(x => x)
+            .Distinct()
+            .ToArray();
 
-        public string Description { get; set; }
+        public string Description => Targets
+            .Select(x => x.attr.Description)
+            .Where(x => x != null)
+            .FirstOrDefault();
 
-        public string DetailedDescription { get; set; }
+        public string DetailedDescription => Targets
+            .Select(x => x.attr.DetailedDescription)
+            .Where(x => x != null)
+            .FirstOrDefault();
 
         public List<Target> Targets { get; set; } = new List<Target>();
 

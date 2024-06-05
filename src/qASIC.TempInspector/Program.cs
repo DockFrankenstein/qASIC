@@ -115,7 +115,7 @@ namespace qASICRemote
             Console.Clear();
         }
 
-        [Command("disconnect")]
+        [Command("disconnect", "dc", Description = "Disconnects from connected application.")]
         public static void Disconnect()
         {
             if (client?.IsActive != true)
@@ -127,7 +127,7 @@ namespace qASICRemote
             client.Disconnect();
         }
 
-        [Command("connect")]
+        [Command("connect", "cn", Description = "Connects to an application.")]
         private static void Connect() =>
             Connect(false);
 
@@ -154,7 +154,7 @@ namespace qASICRemote
             client.Connect(client.Address, port);
         }
 
-        [Command("lc")]
+        [Command("listconsoles", "lc", Description = "Lists all registered consoles.")]
         private static void ListConsoles()
         {
             var consoles = consoleManager?
