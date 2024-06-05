@@ -97,7 +97,7 @@ namespace qASIC.Options
 
                     if (item.IsStatic)
                     {
-                        var val = item.GetValue(null);
+                        value = item.GetValue(null);
                         return true;
                     }
 

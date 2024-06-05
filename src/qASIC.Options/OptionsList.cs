@@ -6,6 +6,7 @@ using System.Reflection;
 
 namespace qASIC.Options
 {
+    [Serializable]
     public class OptionsList : IEnumerable<KeyValuePair<string, OptionsList.ListItem>>
     {
         /// <summary>Default binding flags used for finding option attributes.</summary>
@@ -19,7 +20,6 @@ namespace qASIC.Options
         public ListItem this[string key]
         {
             get => Values[OptionsManager.FormatKeyString(key)];
-            set => Values[OptionsManager.FormatKeyString(key)] = value; 
         }
 
         public int Count => Values.Count;
@@ -160,6 +160,7 @@ namespace qASIC.Options
             }
         }
 
+        [Serializable]
         public class ListItem
         {
             public ListItem(string name) : this(name, default, default) { }

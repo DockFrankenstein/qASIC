@@ -6,13 +6,31 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Collections;
+using System.Runtime.Serialization;
 
 namespace qASIC.Serialization.Serializers
 {
     public class ConfigSerializer
     {
         public const string INDENT = "  ";
-        const BindingFlags DEFAULT_FLAGS = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        private const BindingFlags DEFAULT_FLAGS = BindingFlags.Public;
+
+        private static HashSet<Type> ExcludedTypes = new HashSet<Type>()
+        {
+            typeof(Action), typeof(Action<>), typeof(Action<,>), typeof(Action<,,>), 
+            typeof(Action<,,,>), typeof(Action<,,,,>), typeof(Action<,,,,,>), 
+            typeof(Action<,,,,,,>), typeof(Action<,,,,,,,>), typeof(Action<,,,,,,,,>), 
+            typeof(Action<,,,,,,,,,>), typeof(Action<,,,,,,,,,,>), typeof(Action<,,,,,,,,,,,>), 
+            typeof(Action<,,,,,,,,,,,,>), typeof(Action<,,,,,,,,,,,,,>), typeof(Action<,,,,,,,,,,,,,,>), 
+            typeof(Action<,,,,,,,,,,,,,,,>),
+
+            typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>),
+            typeof(Func<,,,,>), typeof(Func<,,,,,>), typeof(Func<,,,,,,>),
+            typeof(Func<,,,,,,,>), typeof(Func<,,,,,,,,>), typeof(Func<,,,,,,,,,>),
+            typeof(Func<,,,,,,,,,,>), typeof(Func<,,,,,,,,,,,>), typeof(Func<,,,,,,,,,,,,>),
+            typeof(Func<,,,,,,,,,,,,,>), typeof(Func<,,,,,,,,,,,,,,>), typeof(Func<,,,,,,,,,,,,,,,>),
+            typeof(Func<,,,,,,,,,,,,,,,,>),
+        };
 
         public BindingFlags Flags { get; set; } = DEFAULT_FLAGS;
 
@@ -34,6 +52,9 @@ namespace qASIC.Serialization.Serializers
         /// <returns>A config value that represents the object's data.</returns>
         ConfigValue CreateConfigForObject(object obj)
         {
+            if (obj == null)
+                return new ConfigValue();
+
             var type = obj.GetType();
 
             if (obj is IDictionary dict)
@@ -78,7 +99,7 @@ namespace qASIC.Serialization.Serializers
                         memberValue = field.GetValue(obj);
                         break;
                     case PropertyInfo property:
-                        if (!property.CanRead)
+                        if (!property.CanRead || !property.CanWrite)
                             continue;
 
                         name = property.Name;
@@ -317,12 +338,37 @@ namespace qASIC.Serialization.Serializers
         }
 
         MemberInfo[] GetMembers(Type type) =>
-            type.GetMembers(DEFAULT_FLAGS)
+            type.GetMembers(Flags | BindingFlags.Instance)
+            .Concat(TypeFinder.FindPropertiesWithAttribute<SerializableAttribute>())
+            .Concat(TypeFinder.FindFieldsWithAttribute<SerializableAttribute>())
+            .Distinct()
+            .Except(type.GetDefaultMembers())
             .Where(x => (x.MemberType.HasFlag(MemberTypes.Field) || x.MemberType.HasFlag(MemberTypes.Property)) &&
                 !x.Name.StartsWith("<") &&
                 x.DeclaringType.IsSerializable &&
-                x.GetCustomAttribute(typeof(NonSerializedAttribute)) == null)
+                x.GetCustomAttribute(typeof(NonSerializedAttribute)) == null &&
+                (!(x is PropertyInfo property) || (property.CanRead && property.CanWrite && property.GetIndexParameters().Length == 0)) &&
+                !IsTypeExcluded(x))
             .ToArray();
+
+        bool IsTypeExcluded(MemberInfo memberInfo)
+        {
+            switch (memberInfo)
+            {
+                case FieldInfo field:
+                    if (ExcludedTypes.Contains(field.FieldType)) return true;
+                    if (!field.FieldType.IsGenericType) return false;
+
+                    return ExcludedTypes.Contains(field.FieldType.GetGenericTypeDefinition());
+                case PropertyInfo property:
+                    if (ExcludedTypes.Contains(property.PropertyType)) return true;
+                    if (!property.PropertyType.IsGenericType) return false;
+
+                    return ExcludedTypes.Contains(property.PropertyType.GetGenericTypeDefinition());
+                default:
+                    return true;
+            }
+        }
 
         int GetIndentCount(string txt)
         {

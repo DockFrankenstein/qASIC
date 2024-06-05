@@ -1,15 +1,17 @@
 ﻿using qASIC.Core.Interfaces;
+using System;
 using System.Linq;
 
 namespace qASIC.Options
 {
     public class OptionsManager : ILoggable
     {
-        public OptionsManager() : this(new OptionTargetList().FindOptions()) { }
+        public OptionsManager(OptionsSerializer serializer = null) : this(new OptionTargetList().FindOptions(), serializer) { }
 
-        public OptionsManager(OptionTargetList targetList, bool ensureListHasAllTargets = true)
+        public OptionsManager(OptionTargetList targetList, OptionsSerializer serializer = null, bool ensureListHasAllTargets = true)
         {
             TargetList = targetList;
+            Serializer = serializer ?? new OptionsSerializer();
 
             OptionsList.OnValueSet += List_OnChanged;
 
@@ -25,6 +27,8 @@ namespace qASIC.Options
 
         public LogManager Logs { get; set; } = new LogManager();
         public ILoggable[] Loggables => new ILoggable[0];
+
+        public OptionsSerializer Serializer { get; set; }
 
         /// <summary>List containing options and their values.</summary>
         public OptionsList OptionsList { get; private set; } = new OptionsList();
@@ -89,12 +93,32 @@ namespace qASIC.Options
 
         public void Save()
         {
+            try
+            {
+                Serializer.Save(OptionsList);
+            }
+            catch (Exception e)
+            {
+                Logs.LogError($"An exception occured while saving options: {e}");
+                return;
+            }
 
+            Logs.Log($"Successfully saved options at {Serializer.Path}", "settings_save_success");
         }
 
         public void Load()
         {
+            try
+            {
+                Serializer.Load(OptionsList);
+            }
+            catch (Exception e)
+            {
+                Logs.LogError($"An exception occured while loading options: {e}");
+                return;
+            }
 
+            Logs.Log("Successfully loaded options.", "settings_load_success");
         }
 
         /// <summary>Ensures the list of options is properly generated using the list of targets that were found in <see cref="TargetList"/>.</summary>
