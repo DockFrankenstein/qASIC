@@ -1,6 +1,7 @@
 ﻿using qASIC.Communication;
 using qASIC.Communication.Components;
 using qASIC.CommComponents;
+using System;
 
 namespace qASIC
 {
@@ -13,6 +14,8 @@ namespace qASIC
 
             RemoteInspectorServer = new Server(RemoteInspectorComponents, Constants.DEFAULT_PORT);
             AppInfo = appInfo ?? new RemoteAppInfo();
+
+            Services = new qServices(this);
         }
 
         public RemoteAppInfo AppInfo
@@ -27,6 +30,9 @@ namespace qASIC
         public bool autoStartRemoteInspectorServer = true;
 
         public readonly CC_Log cc_log = new CC_Log();
+
+        public qServices Services;
+        public qRegisteredObjects RegisteredObjects = new qRegisteredObjects();
 
         public void Start()
         {

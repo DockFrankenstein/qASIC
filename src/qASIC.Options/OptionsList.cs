@@ -126,7 +126,7 @@ namespace qASIC.Options
 
         /// <summary>Ensure this list contains every item that's specified in a target list.</summary>
         /// <param name="list">The target list to pull items from.</param>
-        public void EnsureTargets(OptionTargetList list)
+        public void EnsureTargets(OptionTargetList list, qRegisteredObjects registeredObjects)
         {
             foreach (var item in list)
             {
@@ -137,7 +137,7 @@ namespace qASIC.Options
                 object value = null;
                 object defaultValue = null;
 
-                switch (list.TryGetValue(key, out object val), 
+                switch (list.TryGetValue(registeredObjects, key, out object val), 
                     list.TryGetDefalutValue(key, out object defaultVal))
                 {
                     case (true, false):

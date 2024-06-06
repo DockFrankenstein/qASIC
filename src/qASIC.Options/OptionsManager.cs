@@ -1,11 +1,10 @@
 ﻿using qASIC.Core.Interfaces;
 using System;
 using System.Linq;
-using System.Threading;
 
 namespace qASIC.Options
 {
-    public class OptionsManager : ILoggable
+    public class OptionsManager : ILoggable, IService
     {
         public OptionsManager(OptionsSerializer serializer = null) : this(new OptionTargetList().FindOptions(), serializer) { }
 
@@ -26,7 +25,19 @@ namespace qASIC.Options
         private void List_OnChanged(OptionsList.ListItem[] items)
         {
             foreach (var item in items)
-                TargetList.Set(item.Name, item.Value);
+                TargetList.Set(RegisteredObjects, item.Name, item.Value);
+        }
+
+        private qInstance _instance;
+        public qInstance Instance 
+        {
+            get => _instance;
+            set
+            {
+                RegisteredObjects.StopSyncingWithOther(_instance?.RegisteredObjects);
+                _instance = value;
+                RegisteredObjects.SyncWithOther(_instance?.RegisteredObjects);
+            }
         }
 
         public LogManager Logs { get; set; } = new LogManager();
@@ -34,8 +45,9 @@ namespace qASIC.Options
 
         public OptionsSerializer Serializer { get; set; }
 
-        public OptionsList FinalOptionsList { get; private set; } = new OptionsList();
 
+        /// <summary>List of registered objects that will have members marked with the <see cref="OptionAttribute"/> invoked when an option gets set.</summary>
+        public qRegisteredObjects RegisteredObjects { get; set; } = new qRegisteredObjects();
         /// <summary>List containing options and their values.</summary>
         public OptionsList OptionsList { get; private set; } = new OptionsList();
 
@@ -151,7 +163,7 @@ namespace qASIC.Options
         /// <summary>Ensures the list of options is properly generated using the list of targets that were found in <see cref="TargetList"/>.</summary>
         public void EnsureListHasAllTargets()
         {
-            OptionsList.EnsureTargets(TargetList);
+            OptionsList.EnsureTargets(TargetList, RegisteredObjects);
             Logs.Log($"Created options from target list.", "settings_ensure_targets");
         }
     }

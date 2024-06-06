@@ -9,11 +9,20 @@ namespace qASIC.Options
     /// <summary>List of found option targets that were marked with an <see cref="OptionAttribute"/>.</summary>
     public class OptionTargetList : IEnumerable<KeyValuePair<string, OptionTargetList.Target>>
     {
+        public OptionTargetList()
+        {
+
+        }
+
+        public OptionTargetList(OptionTargetList other)
+        {
+            Targets = new Dictionary<string, List<Target>>(other.Targets);
+            Flags = other.Flags;
+        }
+
         public BindingFlags Flags { get; set; } = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
         Dictionary<string, List<Target>> Targets { get; set; } = new Dictionary<string, List<Target>>();
-
-        Dictionary<Type, HashSet<object>> TargetObjects { get; set; } = new Dictionary<Type, HashSet<object>>();
 
         public List<Target> this[string name]
         {
@@ -82,7 +91,7 @@ namespace qASIC.Options
             return this;
         }
 
-        public bool TryGetValue(string name, out object value)
+        public bool TryGetValue(qRegisteredObjects registeredObjects, string name, out object value)
         {
             name = OptionsManager.FormatKeyString(name);
             value = null;
@@ -101,9 +110,9 @@ namespace qASIC.Options
                         return true;
                     }
 
-                    if (!TargetObjects.ContainsKey(item.DeclaringType)) continue;
+                    var targets = registeredObjects.Where(x => x?.GetType() == item.DeclaringType);
 
-                    foreach (var obj in TargetObjects[item.DeclaringType])
+                    foreach (var obj in targets)
                     {
                         var val = item.GetValue(obj);
                         value = val;
@@ -134,7 +143,7 @@ namespace qASIC.Options
             return false;
         }
 
-        public void Set(string name, object value)
+        public void Set(qRegisteredObjects registeredObjects, string name, object value)
         {
             name = OptionsManager.FormatKeyString(name);
 
@@ -158,9 +167,9 @@ namespace qASIC.Options
                     continue;
                 }
 
-                if (!TargetObjects.ContainsKey(item.DeclaringType)) continue;
+                var targets = registeredObjects.Where(x => x?.GetType() == item.DeclaringType);
 
-                foreach (var obj in TargetObjects[item.DeclaringType])
+                foreach (var obj in targets)
                 {
                     try
                     {
@@ -169,27 +178,6 @@ namespace qASIC.Options
                     catch { }
                 }
             }
-        }
-
-        public void RegisterObject(object obj)
-        {
-            var type = obj.GetType();
-
-            if (!TargetObjects.ContainsKey(type))
-                TargetObjects.Add(type, new HashSet<object>());
-
-            if (!TargetObjects[type].Contains(obj))
-                TargetObjects[type].Add(obj);
-        }
-
-        public void DeregisterObject(object obj)
-        {
-            var type = obj.GetType();
-
-            if (!TargetObjects.ContainsKey(type))
-                return;
-
-            TargetObjects[type].Remove(obj);
         }
 
         public IEnumerator<KeyValuePair<string, Target>> GetEnumerator() =>

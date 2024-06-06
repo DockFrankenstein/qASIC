@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace qASIC.Console
 {
-    public class GameConsole
+    public class GameConsole : IService
     {
         public const string SYSTEM_NAME = "qASIC.Console";
         public const string SYSTEM_VERSION = "1.0.0";
@@ -26,6 +26,28 @@ namespace qASIC.Console
         {
             if (LogQDebug)
                 Log(log, 4, false);
+        }
+
+        private qInstance _instance;
+        public qInstance Instance
+        {
+            get => _instance;
+            set
+            {
+                Targets.StopSyncingWithOther(_instance?.RegisteredObjects);
+                _instance = value;
+                Targets.SyncWithOther(_instance?.RegisteredObjects);
+            }
+        }
+
+        void Instance_OnObjectRegistered(object obj)
+        {
+            Targets.Register(obj);
+        }
+
+        void Instance_OnObjectDeregistered(object obj)
+        {
+            Targets.Deregister(obj);
         }
 
         public string Name { get; private set; }
@@ -52,19 +74,7 @@ namespace qASIC.Console
         public bool IncludeStackTraceInUnknownCommandExceptions { get; set; } = false;
 
         #region Registering targets
-        public List<object> Targets { get; } = new List<object>();
-
-        public void RegisterTarget(object target)
-        {
-            if (Targets.Contains(target)) return;
-            Targets.Add(target);
-        }
-
-        public void DeregisterTarget(object target)
-        {
-            if (!Targets.Contains(target)) return;
-            Targets.Remove(target);
-        }
+        public qRegisteredObjects Targets { get; private set; } = new qRegisteredObjects();
         #endregion
 
         #region Executing
