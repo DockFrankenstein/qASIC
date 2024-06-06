@@ -24,15 +24,26 @@ namespace qASIC
             .Select(x => (T)x)
             .FirstOrDefault();
 
-        public IEnumerable<object> GetMany(Type type) =>
+        public IEnumerable<object> GetMultiple(Type type) =>
             items.Where(x => x.GetType() == type);
 
-        public IEnumerable<T> GetMany<T>() =>
+        public IEnumerable<T> GetMultiple<T>() =>
             items.Where(x => x is T)
             .Select(x => (T)x);
 
-        public void Add(object obj) =>
+        public void Add(object obj)
+        {
             items.Add(obj);
+            if (obj is IService service)
+                service.Instance = Instance;
+        }
+
+        public void Remove(object obj)
+        {
+            items.Remove(obj);
+            if (obj is IService service)
+                service.Instance = null;
+        }
 
         public IEnumerator<object> GetEnumerator() =>
             items.GetEnumerator();
