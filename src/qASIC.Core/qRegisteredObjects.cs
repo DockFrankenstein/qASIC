@@ -39,7 +39,7 @@ namespace qASIC
         public void Deregister(object obj)
         {
             objects.Remove(obj);
-            OnObjectDeregistered(obj);
+            OnObjectDeregistered?.Invoke(obj);
         }
 
         /// <summary>Deregisters multiple objects.</summary>
