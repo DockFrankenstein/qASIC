@@ -13,11 +13,18 @@ namespace qASIC.Console
         public const string SYSTEM_NAME = "qASIC.Console";
         public const string SYSTEM_VERSION = "1.0.0";
 
-        public GameConsole() : this(Guid.NewGuid().ToString()) { }
+        public GameConsole(GameCommandList commandList = null, ArgumentsParser parser = null) :
+            this(Guid.NewGuid().ToString(), commandList, parser) { }
 
-        public GameConsole(string name)
+        public GameConsole(string name, GameCommandList commandList = null, ArgumentsParser parser = null)
         {
             Name = name;
+            CommandList = commandList ?? new GameCommandList()
+                .FindBuiltInCommands()
+                .FindCommands()
+                .FindAttributeCommands();
+
+            CommandParser = parser ?? new QuashParser();
 
             qDebug.OnLog += QDebug_OnLog;
         }
