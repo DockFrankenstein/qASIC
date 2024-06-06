@@ -109,7 +109,7 @@ namespace qASIC.Console.Commands
 
                 foreach (var target in targets)
                 {
-                    var finalValues = values;
+                    var finalValues = new List<object>(values);
 
                     var targetArgTypes = new Type[valueTypes.Length];
                     Array.Copy(target.argTypes, targetArgTypes, targetArgTypes.Length);
