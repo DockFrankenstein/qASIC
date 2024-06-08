@@ -71,12 +71,12 @@ namespace qASIC.Console.Commands
             object returnValue = null;
 
             int closestMatchCorrectArgsCount = -1;
-            Target? closestMatch = null;
+            Target closestMatch = null;
 
             if (FindCommandAndTryRun(new List<object>()))
                 return returnValue;
 
-            throw new CommandParseException(closestMatch!.Value.argTypes[closestMatchCorrectArgsCount], args[closestMatchCorrectArgsCount + 1].arg);
+            throw new CommandParseException(closestMatch.argTypes[closestMatchCorrectArgsCount], args[closestMatchCorrectArgsCount + 1].arg);
 
             bool FindCommandAndTryRun(List<object> values, bool first = true)
             {
@@ -147,7 +147,7 @@ namespace qASIC.Console.Commands
             }
         }
 
-        public struct Target
+        public abstract class Target
         {
             public Target(MemberInfo memberInfo)
             {
@@ -155,43 +155,20 @@ namespace qASIC.Console.Commands
                 attr = memberInfo.GetCustomAttribute<CommandAttribute>()!;
                 targetAttr = memberInfo.GetCustomAttributes<CommandTargetAttribute>()
                     .ToArray();
+            }
 
+            public static Target CreateFromMember(MemberInfo memberInfo)
+            {
                 switch (memberInfo)
                 {
                     case MethodInfo methodInfo:
-                        var parameters = methodInfo.GetParameters();
-
-                        forwardCommandArgs = parameters.Length > 0 && parameters[0].ParameterType == typeof(CommandArgs);
-
-                        if (forwardCommandArgs)
-                            parameters = parameters
-                                .Skip(1)
-                                .ToArray();
-
-                        minArgsCount = parameters
-                            .Where(x => !x.IsOptional)
-                            .Count();
-
-                        maxArgsCount = parameters.Length;
-
-                        argTypes = parameters
-                            .Select(x => x.ParameterType)
-                            .ToArray();
-                        break;
+                        return new MethodTarget(methodInfo);
                     case FieldInfo fieldInfo:
-                        forwardCommandArgs = false;
-                        minArgsCount = 0;
-                        maxArgsCount = 1;
-                        argTypes = new Type[] { fieldInfo.FieldType! };
-                        break;
+                        return new FieldTarget(fieldInfo);
                     case PropertyInfo propertyInfo:
-                        forwardCommandArgs = false;
-                        minArgsCount = 0;
-                        maxArgsCount = 1;
-                        argTypes = new Type[] { propertyInfo.PropertyType! };
-                        break;
+                        return new PropertyTarget(propertyInfo);
                     default:
-                        throw new NotImplementedException();
+                        return null;
                 }
             }
 
@@ -214,79 +191,51 @@ namespace qASIC.Console.Commands
 
                 var singleTarget = targets.Count() == 1;
 
-                switch (memberInfo)
+                if (IsStatic)
                 {
-                    case MethodInfo methodInfo:
-                        if (methodInfo.IsStatic)
-                            return methodInfo.Invoke(null, values);
-
-                        foreach (var item in targets)
-                        {
-                            LogExecuteBegin(item);
-                            var val = args.console.Execute(args.commandName, () => methodInfo.Invoke(item, values));
-
-                            if (singleTarget)
-                                return val;
-                        }
-
-                        return null;
-                    case FieldInfo fieldInfo:
-                        if (values.Length != 1) return null;
-
-                        if (fieldInfo.IsStatic)
-                        {
-                            if (values[0] == Type.Missing)
-                                return fieldInfo.GetValue(null); ;
-
-                            fieldInfo.SetValue(null, values[0]);
-                        }
-
-                        foreach (var item in targets)
-                        {
-                            LogExecuteBegin(item);
-                            var val = args.console.Execute(args.commandName, () =>
-                            {
-                                fieldInfo.SetValue(item, values[0]);
-                                return null;
-                            });
-
-                            if (singleTarget)
-                                return val;
-                        }
-
-                        return null;
-                    case PropertyInfo propertyInfo:
-                        if (values.Length != 1) return null;
-
-                        if (propertyInfo.GetAccessors(true)[0].IsStatic)
-                        {
-                            if (values[0] == Type.Missing)
-                                return propertyInfo.GetValue(null);
-
-                            propertyInfo.SetValue(null, values[0]);
-                        }
-
-                        foreach (var item in targets)
-                        {
-                            LogExecuteBegin(item);
-                            var val = args.console.Execute(args.commandName, () =>
-                            {
-                                propertyInfo.SetValue(item, values[0]);
-                                return null;
-                            });
-
-                            if (singleTarget)
-                                return val;
-                        }
-
-                        return null;
-                    default:
-                        throw new NotImplementedException();
+                    return ExecuteInConsole(() =>
+                    {
+                        return InvokeForItem(null, values, args);
+                    });
                 }
 
-                void LogExecuteBegin(object target) =>
-                    args.console.Log($"Executing command for target '{target ?? "NULL"}'");
+                object val = null;
+                foreach (var item in targets)
+                {
+                    LogExecuteBegin(args, item);
+                    val = ExecuteInConsole(() =>
+                    {
+                        return InvokeForItem(item, values, args);
+                    });
+                }
+
+                return singleTarget ? val : null;
+
+                object ExecuteInConsole(Func<object> func)
+                {
+                    return args.console.Execute(args.commandName, () =>
+                    {
+                        try
+                        {
+                            return func?.Invoke();                           
+                        }
+                        catch (TargetInvocationException e)
+                        {
+                            if (e.InnerException != null)
+                                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+
+                            throw;
+                        }
+                    });
+                }
             }
+
+            protected abstract bool IsStatic { get; }
+
+            protected abstract object InvokeForItem(object item, object[] values, CommandArgs args);
+
+            protected void LogExecuteBegin(CommandArgs args, object target) =>
+                args.console.Log($"Executing command for target '{target ?? "NULL"}'");
 
             public MemberInfo memberInfo;
             public CommandAttribute attr;
@@ -296,6 +245,92 @@ namespace qASIC.Console.Commands
             public int maxArgsCount;
             /// <summary>Whenever target has <see cref="CommandArgs"/> as the first parameter</summary>
             public bool forwardCommandArgs;
+        }
+
+        public class MethodTarget : Target
+        {
+            public MethodTarget(MethodInfo methodInfo) : base(methodInfo)
+            {
+                this.methodInfo = methodInfo;
+
+                var parameters = methodInfo.GetParameters();
+
+                forwardCommandArgs = parameters.Length > 0 && parameters[0].ParameterType == typeof(CommandArgs);
+
+                if (forwardCommandArgs)
+                    parameters = parameters
+                        .Skip(1)
+                        .ToArray();
+
+                minArgsCount = parameters
+                    .Where(x => !x.IsOptional)
+                    .Count();
+
+                maxArgsCount = parameters.Length;
+
+                argTypes = parameters
+                    .Select(x => x.ParameterType)
+                    .ToArray();
+            }
+
+            MethodInfo methodInfo;
+
+            protected override bool IsStatic => methodInfo.IsStatic;
+
+            protected override object InvokeForItem(object item, object[] values, CommandArgs args)
+            {
+                return methodInfo.Invoke(item, values);
+            }
+        }
+
+        public class FieldTarget : Target
+        {
+            public FieldTarget(FieldInfo fieldInfo) : base(fieldInfo)
+            {
+                this.fieldInfo = fieldInfo;
+                forwardCommandArgs = false;
+                minArgsCount = 0;
+                maxArgsCount = 1;
+                argTypes = new Type[] { fieldInfo.FieldType! };
+            }
+
+            FieldInfo fieldInfo;
+
+            protected override bool IsStatic => fieldInfo.IsStatic;
+
+            protected override object InvokeForItem(object item, object[] values, CommandArgs args)
+            {
+                if (values[0] == Type.Missing)
+                    return fieldInfo.GetValue(item);
+
+                fieldInfo.SetValue(item, values[0]);
+                return null;
+            }
+        }
+
+        public class PropertyTarget : Target
+        {
+            public PropertyTarget(PropertyInfo propertyInfo) : base(propertyInfo)
+            {
+                this.propertyInfo = propertyInfo;
+                forwardCommandArgs = false;
+                minArgsCount = 0;
+                maxArgsCount = 1;
+                argTypes = new Type[] { propertyInfo.PropertyType! };
+            }
+
+            PropertyInfo propertyInfo;
+
+            protected override bool IsStatic => propertyInfo.GetAccessors(true)[0].IsStatic;
+
+            protected override object InvokeForItem(object item, object[] values, CommandArgs args)
+            {
+                if (values[0] == Type.Missing)
+                    return propertyInfo.GetValue(item);
+
+                propertyInfo.SetValue(item, values[0]);
+                return null;
+            }
         }
     }
 }

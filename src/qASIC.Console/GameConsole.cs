@@ -16,8 +16,16 @@ namespace qASIC.Console
         public GameConsole(GameCommandList commandList = null, ArgumentsParser parser = null) :
             this(Guid.NewGuid().ToString(), commandList, parser) { }
 
-        public GameConsole(string name, GameCommandList commandList = null, ArgumentsParser parser = null)
+        public GameConsole(string name, GameCommandList commandList = null, ArgumentsParser parser = null) :
+            this(null, name, commandList, parser) { }
+
+        public GameConsole(qInstance instance, GameCommandList commandList = null, ArgumentsParser parser = null) :
+            this(instance, Guid.NewGuid().ToString(), commandList, parser) { }
+
+        public GameConsole(qInstance instance, string name, GameCommandList commandList = null, ArgumentsParser parser = null)
         {
+            Instance = instance;
+
             Name = name;
             CommandList = commandList ?? new GameCommandList()
                 .FindBuiltInCommands()
@@ -206,19 +214,23 @@ namespace qASIC.Console
 
                 if (TryGetColorAttributeOfTrace(method, declaringType, out var colorAttr))
                 {
-                    log.colorTag = colorAttr!.ColorTag;
-                    log.color = colorAttr!.Color;
+                    log.colorTag = colorAttr.ColorTag;
+                    log.color = colorAttr.Color;
                 }
 
                 if (TryGetPrefixAttributeOfTrace(method, declaringType, out var prefixAttr))
                 {
-                    log.message = prefixAttr!.FormatMessage(log.message);
+                    log.message = prefixAttr.FormatMessage(log.message);
                 }
             }
 
             Logs.Add(log);
             OnLog?.Invoke(log);
         }
+
+        /// <summary>Clears the console. Previous logs will still be there, but they won't show up in the output.</summary>
+        public void Clear() =>
+            Log(GameLog.CreateNow(string.Empty, LogType.Clear, qDebug.DEFAULT_COLOR_TAG));
 
         public qColor GetLogColor(GameLog log) =>
             Theme.GetLogColor(log);

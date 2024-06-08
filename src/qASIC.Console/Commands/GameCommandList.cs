@@ -70,9 +70,9 @@ namespace qASIC.Console.Commands
                 .Concat(fields)
                 .Concat(properties);
 
-            foreach (var method in targets)
+            foreach (var member in targets)
             {
-                var attr = (CommandAttribute)method.GetCustomAttribute(type);
+                var attr = (CommandAttribute)member.GetCustomAttribute(type);
                 if (attr == null) continue;
 
                 var commandName = attr.Name.ToLower();
@@ -89,9 +89,9 @@ namespace qASIC.Console.Commands
                     CommandName = commandName,
                 };
 
-                var methodTarget = new GameAttributeCommand.Target(method);
+                var memberTarget = GameAttributeCommand.Target.CreateFromMember(member);
 
-                command.Targets.Add(methodTarget);
+                command.Targets.Add(memberTarget);
 
                 if (!commandExists)
                     AddCommand(command);

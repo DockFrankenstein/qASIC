@@ -6,10 +6,22 @@ namespace qASIC.Options
 {
     public class OptionsManager : ILoggable, IService
     {
-        public OptionsManager(OptionsSerializer serializer = null) : this(new OptionTargetList().FindOptions(), serializer) { }
+        public OptionsManager(OptionsSerializer serializer = null) :
+            this(new OptionTargetList().FindOptions(), serializer: serializer)
+        { }
 
-        public OptionsManager(OptionTargetList targetList, OptionsSerializer serializer = null, bool ensureListHasAllTargets = true)
+        public OptionsManager(OptionTargetList targetList, bool ensureListHasAllTargets = true, OptionsSerializer serializer = null) :
+            this(null, targetList, ensureListHasAllTargets, serializer)
+        { }
+
+        public OptionsManager(qInstance instance, OptionsSerializer serializer = null) :
+            this(instance, new OptionTargetList().FindOptions(), serializer: serializer)
+        { }
+
+        public OptionsManager(qInstance instance, OptionTargetList targetList, bool ensureListHasAllTargets = true, OptionsSerializer serializer = null)
         {
+            Instance = instance;
+
             TargetList = targetList;
             Serializer = serializer ?? new OptionsSerializer();
 
@@ -29,7 +41,7 @@ namespace qASIC.Options
         }
 
         private qInstance _instance;
-        public qInstance Instance 
+        public qInstance Instance
         {
             get => _instance;
             set
