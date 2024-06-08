@@ -1,5 +1,4 @@
 ﻿using qASIC.Communication;
-using System.Net;
 using qASIC;
 using qASIC.Console;
 using Pastel;

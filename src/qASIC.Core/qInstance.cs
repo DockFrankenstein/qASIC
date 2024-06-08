@@ -1,7 +1,6 @@
 ﻿using qASIC.Communication;
 using qASIC.Communication.Components;
 using qASIC.CommComponents;
-using System;
 
 namespace qASIC
 {
