@@ -2,25 +2,29 @@
 using System.Net;
 using qASIC;
 using qASIC.Console;
-using System;
 using Pastel;
 
 namespace qASICRemote
 {
+    public class InspectorCommand : CommandAttribute
+    {
+        public InspectorCommand(string name) : base(name) { }
+        public InspectorCommand(string name, params string[] aliases) : base(name, aliases) { }
+    }
+
     internal class Program
     {
-        const int UPDATE_FREQUENCY = 200;
-
-        public static qClient? client = null;
-
-        public static qInstance? QasicInstance = null;
-        public static GameConsole? GConsole = null;
-
-        public static InstanceConsoleManager? consoleManager;
-
-        static bool AutoConnect { get; set; } = false;
-
         private static void Main(string[] args)
+        {
+            var inspector = new Inspector();
+            inspector.Run(args);
+        }
+    }
+
+    [LogColor(255, 192, 179)]
+    public class Inspector
+    {
+        public Inspector()
         {
             QasicInstance = new qInstance()
             {
@@ -29,20 +33,18 @@ namespace qASICRemote
 
             var commands = new qASIC.Console.Commands.GameCommandList()
                 .FindBuiltInCommands()
-                .FindAttributeCommands()
-                .FindCommands();
+                .FindAttributeCommands<InspectorCommand>();
 
-            GConsole = new GameConsole("Main")
-            {
-                CommandList = commands,
-                CommandParser = new qASIC.Console.Parsing.Arguments.QuashParser(),
-            };
+            GConsole = new GameConsole("MAIN", commands);
+            GConsole.IncludeStackTraceInUnknownCommandExceptions = true;
+            GConsole.OnLog += GConsole_OnLog;
+            GConsole.Targets.Register(this);
 
             AppDomain.CurrentDomain.ProcessExit += OnApplicationClose;
 
             QasicInstance.cc_log.OnReceiveLog += Cc_log_OnReceiveLog;
 
-            client = new qClient(QasicInstance.RemoteInspectorComponents, IPAddress.Parse("127.0.0.1"), Constants.DEFAULT_PORT)
+            client = new qClient(QasicInstance.RemoteInspectorComponents)
             {
                 AppInfo = new RemoteAppInfo(),
             };
@@ -50,19 +52,36 @@ namespace qASICRemote
             client.OnDisconnect += Client_OnDisconnect;
             client.OnConnect += Client_OnConnect;
             client.OnStart += Client_OnStart;
-            client.OnLog += a => GConsole.Log($"[Client] {a}");
+            client.OnLog += a => GConsole.Log($"[Client] {a}", new qColor(179, 255, 254));
 
             consoleManager = new InstanceConsoleManager(client);
             consoleManager.CC_Log.OnRead += CC_Log_OnRead;
             consoleManager.OnConsoleRegister += ConsoleManager_OnConsoleRegister;
+        }
+
+        const int UPDATE_FREQUENCY = 200;
+
+        public qClient client = null;
+
+        public qInstance QasicInstance = null;
+        public GameConsole GConsole = null;
+
+        public InstanceConsoleManager consoleManager;
+
+        bool AutoConnect { get; set; } = false;
+
+        public GameConsole SelectedConsole { get; private set; }
+
+        [LogColor(255, 255, 255)]
+        public void Run(string[] args)
+        {
+            QasicInstance.Start();
 
             new Task(async () =>
             {
                 while (true)
                     await Update();
             }).Start();
-
-            GConsole.OnLog += GConsole_OnLog;
 
             GConsole.Log($"Created update loop, update frequency: {UPDATE_FREQUENCY}ms");
 
@@ -98,25 +117,30 @@ namespace qASICRemote
             }
         }
 
-        private static void ConsoleManager_OnConsoleRegister(GameConsole console)
+        private void ConsoleManager_OnConsoleRegister(GameConsole console)
         {
-            foreach (var log in console.Logs)
-                CC_Log_OnRead(console, log);
+            if (SelectedConsole == null)
+                SelectedConsole = console;
+
+            if (SelectedConsole == console)
+                foreach (var log in console.Logs)
+                    CC_Log_OnRead(console, log);
         }
 
-        private static void CC_Log_OnRead(GameConsole console, qLog log)
+        private void CC_Log_OnRead(GameConsole console, qLog log)
         {
+            if (SelectedConsole != console) return;
             log.message = $"[R:{console.Name}] {log.message}";
             GConsole?.Log(log);
         }
 
-        private static void Client_OnStart()
+        private void Client_OnStart()
         {
-            Console.Clear();
+            GConsole.Log(qLog.CreateNow(string.Empty, LogType.Clear, qDebug.DEFAULT_COLOR_TAG));
         }
 
-        [Command("disconnect", "dc", Description = "Disconnects from connected application.")]
-        public static void Disconnect()
+        [InspectorCommand("disconnect", "dc", Description = "Disconnects from connected application.")]
+        public void Disconnect()
         {
             if (client?.IsActive != true)
             {
@@ -127,20 +151,20 @@ namespace qASICRemote
             client.Disconnect();
         }
 
-        [Command("connect", "cn", Description = "Connects to an application.")]
-        private static void Connect() =>
+        [InspectorCommand("connect", "cn", Description = "Connects to an application.")]
+        private void Connect() =>
             Connect(false);
 
-        [Command("connect")]
-        private static void Connect(bool autoconnect) =>
+        [InspectorCommand("connect")]
+        private void Connect(bool autoconnect) =>
             Connect(client?.Port ?? Constants.DEFAULT_PORT, autoconnect);
 
-        [Command("connect")]
-        private static void Connect(int port) =>
+        [InspectorCommand("connect")]
+        private void Connect(int port) =>
             Connect(port, false);
 
-        [Command("connect")]
-        private static void Connect(int port, bool autoconnect)
+        [InspectorCommand("connect")]
+        private void Connect(int port, bool autoconnect)
         {
             AutoConnect = autoconnect;
             GConsole?.Log($"Auto connect: {autoconnect}");
@@ -154,17 +178,52 @@ namespace qASICRemote
             client.Connect(client.Address, port);
         }
 
-        [Command("listconsoles", "lc", Description = "Lists all registered consoles.")]
-        private static void ListConsoles()
+        [InspectorCommand("listconsoles", "lc", Description = "Lists all registered consoles.")]
+        private void ListConsoles()
         {
-            var consoles = consoleManager?
-                .Select(x => $"\n- {x.Console.Name}") ??
-                new List<string>();
+            TextTree tree = TextTree.Fancy;
+            TextTreeItem root = new TextTreeItem("Registered consoles:");
+            var consoles = consoleManager.ToArray();
+            for (int i = 0; i < consoles.Length; i++)
+                root.Add($"{i}: {consoles[i].Console.Name}");
 
-            GConsole?.Log($"Registered consoles: {string.Join(string.Empty, consoles)}");
+            GConsole?.Log(tree.GenerateTree(root));
         }
 
-        private static void GConsole_OnLog(qLog log)
+        [InspectorCommand("selectedconsole", "sc", Description = "Console that's currently selected.")]
+        private string Cmd_SelectedConsoleIndex()
+        {
+            if (SelectedConsole == null)
+                throw new GameCommandException("No console is selected");
+
+            return SelectedConsole.Name;
+        }
+
+        [InspectorCommand("selectedconsole")]
+        private void Cmd_SelectedConsoleIndex(CommandArgs args, string val)
+        {
+            var console = consoleManager.Where(x => x.Console.Name == val)
+                .FirstOrDefault()?.Console;
+
+            if (console == null)
+                throw new GameCommandException("Console does not exist!");
+
+            SelectedConsole = console;
+            args.console.Log($"Selected console '{SelectedConsole.Name}'.");
+        }
+
+        [InspectorCommand("selectedconsole")]
+        private void Cmd_SelectedConsoleIndex(CommandArgs args, int index)
+        {
+            var consoles = consoleManager.ToArray();
+
+            if (!consoles.IndexInRange(index))
+                throw new GameCommandException("Console index is out of range!");
+
+            Cmd_SelectedConsoleIndex(args, consoles[index].Console.Name);
+        }
+
+        private void GConsole_OnLog(qLog log)
         {
             if (log.logType == LogType.Clear)
             {
@@ -176,13 +235,14 @@ namespace qASICRemote
             Console.WriteLine($"[Output] [{log.logType}] {log.message}".Pastel(System.Drawing.Color.FromArgb(color.red, color.green, color.blue)));
         }
 
-        private static void Cc_log_OnReceiveLog(qLog log, PacketType packetType)
+        private void Cc_log_OnReceiveLog(qLog log, PacketType packetType)
         {
             log.message = $"[qDebug]{log.message}";
             GConsole?.Log(log);
         }
 
-        private static void Client_OnConnect()
+        [LogColor(255, 255, 255)]
+        private void Client_OnConnect()
         {
             var appInfo = (RemoteAppInfo)client!.AppInfo;
             GConsole?.Log($"Connected to '{appInfo.projectName}' v{appInfo.version} made with '{appInfo.engine}' v{appInfo.engineVersion} using protocol version {appInfo.protocolVersion}");
@@ -193,7 +253,7 @@ namespace qASICRemote
             GConsole?.Log($"Used systems by projects:{string.Join(string.Empty, systems)}");
         }
 
-        private static void Client_OnDisconnect(qClient.DisconnectReason reason)
+        private void Client_OnDisconnect(qClient.DisconnectReason reason)
         {
             switch (reason)
             {
@@ -206,13 +266,13 @@ namespace qASICRemote
             }
         }
 
-        public static async Task Update()
+        public async Task Update()
         {
-            client!.Update();
+            client.Update();
             await Task.Delay(UPDATE_FREQUENCY);
         }
 
-        private static void OnApplicationClose(object? sender, EventArgs e)
+        private void OnApplicationClose(object sender, EventArgs e)
         {
             client?.Disconnect();
         }

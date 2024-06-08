@@ -226,7 +226,7 @@ namespace qASIC.Console.Commands
 
                             throw;
                         }
-                    });
+                    }, logOutput: false);
                 }
             }
 

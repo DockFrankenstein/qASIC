@@ -140,13 +140,13 @@ namespace qASIC.Console
             Execute(commandName, () => command!.Run(commandArgs));
         }
 
-        public object Execute(string commandName, Func<object> command)
+        public object Execute(string commandName, Func<object> command, bool logOutput = true)
         {
             try
             {
                 var output = command.Invoke();
 
-                if (output != null)
+                if (logOutput && output != null)
                     Log($"Command returned '{output}'");
 
                 return output;
