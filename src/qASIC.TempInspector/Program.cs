@@ -1,7 +1,6 @@
 ﻿using qASIC.Communication;
 using qASIC;
 using qASIC.Console;
-using Pastel;
 
 namespace qASICRemote
 {
@@ -35,8 +34,8 @@ namespace qASICRemote
                 .FindAttributeCommands<InspectorCommand>();
 
             GConsole = new GameConsole("MAIN", commands);
+            GConsole.ForConsoleApplication();
             GConsole.IncludeStackTraceInUnknownCommandExceptions = true;
-            GConsole.OnLog += GConsole_OnLog;
             GConsole.Targets.Register(this);
 
             AppDomain.CurrentDomain.ProcessExit += OnApplicationClose;
@@ -222,21 +221,9 @@ namespace qASICRemote
             Cmd_SelectedConsoleIndex(args, consoles[index].Console.Name);
         }
 
-        private void GConsole_OnLog(qLog log)
-        {
-            if (log.logType == LogType.Clear)
-            {
-                Console.Clear();
-                return;
-            }
-
-            var color = GConsole?.GetLogColor(log) ?? qColor.White;
-            Console.WriteLine($"[Output] [{log.logType}] {log.message}".Pastel(System.Drawing.Color.FromArgb(color.red, color.green, color.blue)));
-        }
-
         private void Cc_log_OnReceiveLog(qLog log, PacketType packetType)
         {
-            log.message = $"[qDebug]{log.message}";
+            log.message = $"[qDebug] {log.message}";
             GConsole?.Log(log);
         }
 

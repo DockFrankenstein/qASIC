@@ -1,6 +1,8 @@
 ﻿using qASIC.Communication;
 using System;
 
+using SysColor = System.Drawing.Color;
+
 namespace qASIC
 {
     public enum GenericColor
@@ -96,5 +98,8 @@ namespace qASIC
 
         public override int GetHashCode() =>
             ToString().GetHashCode();
+
+        public SysColor ToSystem() =>
+            SysColor.FromArgb(alpha, red, green, blue);
     }
 }
