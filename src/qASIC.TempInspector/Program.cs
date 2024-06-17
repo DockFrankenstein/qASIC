@@ -24,7 +24,13 @@ namespace qASICRemote
     {
         public Inspector()
         {
-            QasicInstance = new qInstance()
+            var appInfo = new RemoteAppInfo()
+            {
+                projectName = "qRemote Inspector (Simple)",
+                version = "1.0.0",
+            };
+
+            QasicInstance = new qInstance(appInfo)
             {
                 autoStartRemoteInspectorServer = false,
             };
@@ -33,7 +39,7 @@ namespace qASICRemote
                 .FindBuiltInCommands()
                 .FindAttributeCommands<InspectorCommand>();
 
-            GConsole = new GameConsole("MAIN", commands);
+            GConsole = new GameConsole(QasicInstance, "MAIN", commands);
             GConsole.ForConsoleApplication();
             GConsole.IncludeStackTraceInUnknownCommandExceptions = true;
             GConsole.Targets.Register(this);
@@ -44,7 +50,7 @@ namespace qASICRemote
 
             client = new qClient(QasicInstance.RemoteInspectorComponents)
             {
-                AppInfo = new RemoteAppInfo(),
+                AppInfo = appInfo,
             };
 
             client.OnDisconnect += Client_OnDisconnect;
