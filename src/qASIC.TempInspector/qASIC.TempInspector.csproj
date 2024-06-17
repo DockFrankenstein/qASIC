@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Pastel" Version="4.2.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\qASIC.Console\qASIC.Console.csproj" />
     <ProjectReference Include="..\qASIC.Core\qASIC.Core.csproj" />
   </ItemGroup>

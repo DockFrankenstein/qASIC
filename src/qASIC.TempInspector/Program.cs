@@ -241,6 +241,8 @@ namespace qASICRemote
 
         private void Client_OnDisconnect(qClient.DisconnectReason reason)
         {
+            SelectedConsole = null;
+
             switch (reason)
             {
                 case qClient.DisconnectReason.None:
