@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using qASIC.Console.Commands.Prompts;
 
 namespace qASIC.Console
 {
     public struct CommandArgs : IEnumerable<ConsoleArgument>, IEnumerable
     {
+        public string inputString;
         public string commandName;
         public ConsoleArgument[] args;
         public GameConsole console;
+        public CommandPrompt prompt;
 
         public ConsoleArgument this[int index]
         {

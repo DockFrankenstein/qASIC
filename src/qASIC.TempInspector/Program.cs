@@ -76,7 +76,7 @@ namespace qASICRemote
 
         public GameConsole SelectedConsole { get; private set; }
 
-        [LogColor(255, 255, 255)]
+        [LogColor(GenericColor.White)]
         public void Run(string[] args)
         {
             QasicInstance.Start();
@@ -111,13 +111,13 @@ namespace qASICRemote
                     continue;
                 }
 
-                if (consoleManager.Count() == 0)
+                if (SelectedConsole == null)
                 {
-                    GConsole.LogError("Application has no consoles registered!");
+                    GConsole.LogError("No console selected!");
                     continue;
                 }
 
-                consoleManager.First().SendCommand(cmd);
+                consoleManager.Get(SelectedConsole.Name).SendCommand(cmd);
             }
         }
 
@@ -140,7 +140,7 @@ namespace qASICRemote
 
         private void Client_OnStart()
         {
-            GConsole.Log(qLog.CreateNow(string.Empty, LogType.Clear, qDebug.DEFAULT_COLOR_TAG));
+            GConsole.Clear();
         }
 
         [InspectorCommand("disconnect", "dc", Description = "Disconnects from connected application.")]
@@ -233,7 +233,7 @@ namespace qASICRemote
             GConsole?.Log(log);
         }
 
-        [LogColor(255, 255, 255)]
+        [LogColor(GenericColor.White)]
         private void Client_OnConnect()
         {
             var appInfo = (RemoteAppInfo)client!.AppInfo;

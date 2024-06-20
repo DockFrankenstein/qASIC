@@ -6,6 +6,7 @@ using qASIC.Console.Parsing.Arguments;
 using System;
 using System.Collections.Generic;
 using qASIC.Console.Commands.Prompts;
+using System.Linq;
 
 namespace qASIC.Console
 {
@@ -109,45 +110,60 @@ namespace qASIC.Console
         /// <param name="cmd">Command text that will be parsed and executed.</param>
         public object Execute(string cmd)
         {
-            if (CommandParser == null)
-                throw new Exception("Cannot parse commands with no parser!");
+            var args = new ConsoleArgument[0];
 
-            var args = CommandParser.ParseString(cmd);
-            return Execute(args);
+            if (!(ReturnedValue is CommandPrompt prompt) || prompt.ParseArguments)
+            {
+                if (CommandParser == null)
+                    throw new Exception("Cannot parse commands with no parser!");
+
+                args = CommandParser.ParseString(cmd);
+            }
+
+            var commandArgs = new CommandArgs()
+            {
+                inputString = cmd,
+                commandName = CurrentCommand?.CommandName ?? (args.Length == 0 ? null : args[0].arg),
+                args = args,
+                console = this,
+            };
+
+            return Execute(commandArgs);
         }
 
         /// <summary>Executes a command.</summary>
-        /// <param name="args">Parsed arguments.</param>
-        public object Execute(ConsoleArgument[] args)
+        /// <param name="args">Command arguments.</param>
+        public object Execute(CommandArgs args)
         {
+            //Before
             if (CurrentCommand == null)
             {
                 if (CommandList == null)
                     throw new Exception("Cannot execute commands with no command list!");
 
-                if (args.Length == 0)
-                    return null;
-
-                var commandName = args[0].arg.ToLower();
-
-                if (!CommandList.TryGetCommand(commandName, out IGameCommand command))
+                if (!CommandList.TryGetCommand(args.commandName, out IGameCommand command))
                 {
-                    LogError($"Command {commandName} doesn't exist");
+                    LogError($"Command {args.commandName} doesn't exist");
                     return null;
                 }
 
                 CurrentCommand = command;
             }
 
-            var commandArgs = new CommandArgs()
+            if (ReturnedValue is CommandPrompt prompt)
             {
-                commandName = CurrentCommand.CommandName,
-                args = args,
-                console = this,
-            };
+                args.prompt = prompt;
 
-            ReturnedValue = Execute(CurrentCommand.CommandName, () => CurrentCommand.Run(commandArgs));
+                if (!prompt.CanExecute(args))
+                    return null;
 
+                args.args = prompt.Prepare(args);
+            }
+
+            //Executing
+            ReturnedValue = Execute(CurrentCommand.CommandName, () => CurrentCommand.Run(args));
+
+            //After
             if (ReturnedValue is CommandPrompt)
             {             
                 return ReturnedValue;

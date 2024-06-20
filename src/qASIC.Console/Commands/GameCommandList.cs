@@ -106,7 +106,7 @@ namespace qASIC.Console.Commands
         /// <returns>Returns if it found a command.</returns>
         public bool TryGetCommand(string commandName, out IGameCommand command)
         {
-            commandName = commandName.ToLower();
+            commandName = commandName?.ToLower();
 
             var targets = Commands
                 .Where(x => x.names.Contains(commandName))
