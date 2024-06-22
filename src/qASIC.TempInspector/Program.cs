@@ -1,6 +1,7 @@
 ﻿using qASIC.Communication;
 using qASIC;
 using qASIC.Console;
+using qASIC.Console.Commands.Prompts;
 
 namespace qASICRemote
 {
@@ -94,10 +95,17 @@ namespace qASICRemote
 
             while (true)
             {
-                var cmd = Console.ReadLine() ?? string.Empty;
+                var forceUseGConsole = GConsole.ReturnedValue is CommandPrompt;
+                var cmd = GConsole.ReadConsoleApplication();
 
                 if (string.IsNullOrWhiteSpace(cmd))
                     continue;
+
+                if (forceUseGConsole)
+                {
+                    GConsole.Execute(cmd);
+                    continue;
+                }
 
                 if (cmd.StartsWith("."))
                 {

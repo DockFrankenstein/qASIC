@@ -2,10 +2,15 @@
 {
     public class TextPrompt : CommandPrompt
     {
-        public override ConsoleArgument[] Prepare(CommandArgs args) =>
-            new ConsoleArgument[] 
+        public string Text { get; private set; }
+
+        public override ConsoleArgument[] Prepare(CommandArgs args)
+        {
+            Text = args.inputString;
+            return new ConsoleArgument[] 
             { 
                 new ConsoleArgument(args.inputString, new object[] { args.inputString }), 
             };
+        }
     }
 }

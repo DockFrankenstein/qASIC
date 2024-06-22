@@ -16,15 +16,16 @@ namespace qASIC.Console.Commands.Prompts
             Cancel,
         }
 
-        static readonly Dictionary<string, NavigationKey> namesToKeys = new Dictionary<string, NavigationKey>()
+        public static readonly Map<string, NavigationKey> keyNames = new Map<string, NavigationKey>(new Dictionary<string, NavigationKey>()
         {
+            [""] = NavigationKey.None,
             ["up"] = NavigationKey.Up,
             ["down"] = NavigationKey.Down,
             ["left"] = NavigationKey.Left,
             ["right"] = NavigationKey.Right,
             ["confirm"] = NavigationKey.Confirm,
             ["cancel"] = NavigationKey.Cancel,
-        };
+        });
 
         public NavigationKey Key { get; private set; } = NavigationKey.None;
 
@@ -35,7 +36,7 @@ namespace qASIC.Console.Commands.Prompts
         {
             string s = args.inputString.First().ToString();
 
-            if (namesToKeys.TryGetValue(args.inputString.ToLower(), out var key))
+            if (keyNames.Forward.TryGetValue(args.inputString.ToLower(), out var key))
             {
                 Key = key;
                 s = args.inputString.ToLower();

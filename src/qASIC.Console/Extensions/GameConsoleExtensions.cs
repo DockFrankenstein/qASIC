@@ -1,4 +1,7 @@
-﻿using SysConsole = System.Console;
+﻿using qASIC.Console.Commands.Prompts;
+using System;
+
+using SysConsole = System.Console;
 
 namespace qASIC.Console
 {
@@ -29,6 +32,50 @@ namespace qASIC.Console
             };
 
             return console;
+        }
+
+        public static string ReadConsoleApplication(this GameConsole console)
+        {
+            string cmd;
+            switch (console.ReturnedValue)
+            {
+                case KeyPrompt keyPrompt:
+                    var key = SysConsole.ReadKey();
+
+                    var promptKey = key.Key switch
+                    {
+                        ConsoleKey.UpArrow => KeyPrompt.NavigationKey.Up,
+                        ConsoleKey.DownArrow => KeyPrompt.NavigationKey.Down,
+                        ConsoleKey.LeftArrow => KeyPrompt.NavigationKey.Left,
+                        ConsoleKey.RightArrow => KeyPrompt.NavigationKey.Right,
+                        ConsoleKey.Enter => KeyPrompt.NavigationKey.Confirm,
+                        ConsoleKey.Escape => KeyPrompt.NavigationKey.Cancel,
+                        _ => KeyPrompt.NavigationKey.None,
+                    };
+
+                    cmd = KeyPrompt.keyNames.Backward[promptKey];
+
+                    if (promptKey != KeyPrompt.NavigationKey.None)
+                    {
+                        if (!char.IsSymbol(key.KeyChar))
+                            return string.Empty;
+
+                        cmd = key.KeyChar.ToString();
+                    }
+
+                    break;
+                default:
+                    cmd = SysConsole.ReadLine();
+                    break;
+            }
+
+            return cmd;
+        }
+
+        public static void ExecuteConsoleApplicationLine(this GameConsole console)
+        {
+            string cmd = console.ReadConsoleApplication();
+            console.Execute(cmd);
         }
     }
 }

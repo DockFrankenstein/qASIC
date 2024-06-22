@@ -25,6 +25,8 @@ namespace qASIC
             Backward = new Indexer<T1, T0>(_backwardDictionary);
         }
 
+        public Map(IEnumerable<KeyValuePair<T0, T1>> pairs) : this(pairs.ToDictionary(x => x.Key, x => x.Value)) { }
+
         private Dictionary<T0, T1> _forwardDictionary = new Dictionary<T0, T1>();
         private Dictionary<T1, T0> _backwardDictionary = new Dictionary<T1, T0>();
 
@@ -74,15 +76,15 @@ namespace qASIC
             if (_forwardDictionary.ContainsKey(key))
                 return false;
 
-            T1 reverseKey = _forwardDictionary[key];
+            T1 backwardKey = _forwardDictionary[key];
             return _forwardDictionary.Remove(key) &&
-                _backwardDictionary.Remove(reverseKey);
+                _backwardDictionary.Remove(backwardKey);
         }
 
         /// <summary>Removes two elements related to each other using the one from the backward indexer.</summary>
         /// <param name="key">Element to remove.</param>
         /// <returns>If the elements have been removed successfully.</returns>
-        public bool RemoveReverse(T1 key)
+        public bool RemoveBackward(T1 key)
         {
             if (_backwardDictionary.ContainsKey(key))
                 return false;

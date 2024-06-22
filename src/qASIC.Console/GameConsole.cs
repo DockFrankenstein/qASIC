@@ -179,7 +179,7 @@ namespace qASIC.Console
             {
                 var output = command.Invoke();
 
-                if (logOutput && output != null)
+                if (logOutput && output != null && !(output is CommandPrompt))
                     Log($"Command returned '{output}'");
 
                 return output;
