@@ -1,6 +1,6 @@
 ﻿using qASIC.Console.Commands.Prompts;
 using System;
-
+using System.Collections.Generic;
 using SysConsole = System.Console;
 
 namespace qASIC.Console
@@ -17,21 +17,64 @@ namespace qASIC.Console
         /// <param name="timeFormat">String used for formatting <see cref="qLog.time"/>.</param>
         public static GameConsole ForConsoleApplication(this GameConsole console, string logFormat = "[{1}] [{2}] {0}", string timeFormat = "HH:mm:ss.fff")
         {
+            Dictionary<qLog, KeyValuePair<int, int>> consoleLines = new Dictionary<qLog, KeyValuePair<int, int>>();
+
+            console.OnUpdateLog += (log) =>
+            {
+                //Ignore if clear
+                if (log.logType == LogType.Clear)
+                    return;
+
+                //Ignore if it's not displayed
+                if (!consoleLines.ContainsKey(log))
+                    return;
+
+                var txt = CreateLogText(log);
+
+                var top = SysConsole.CursorTop;
+                var left = SysConsole.CursorLeft;
+
+                var logData = consoleLines[log];
+
+                SysConsole.CursorTop = logData.Key;
+                SysConsole.CursorLeft = 0;
+
+                SysConsole.Write(new string(' ', logData.Value));
+
+                SysConsole.CursorTop = logData.Key;
+                SysConsole.CursorLeft = 0;
+
+                consoleLines[log] = new KeyValuePair<int, int>(logData.Key, txt.Length);
+
+                SysConsole.Write(ColorText(txt, console.GetLogColor(log)));
+
+                SysConsole.CursorTop = top;
+                SysConsole.CursorLeft = left;
+            };
+
             console.OnLog += (log) =>
             {
                 if (log.logType == LogType.Clear)
                 {
                     SysConsole.Clear();
+                    consoleLines.Clear();
                     return;
                 }
 
-                var color = console.GetLogColor(log);
-                var content = string.Format(logFormat, log.message, log.time.ToString(timeFormat), log.logType);
+                var txt = CreateLogText(log);
+                consoleLines.Add(log, new KeyValuePair<int, int>(SysConsole.CursorTop, txt.Length));
 
-                SysConsole.WriteLine($"\u001b[38;2;{color.red};{color.green};{color.blue}m{content}\u001b[0m");
+                SysConsole.WriteLine(ColorText(txt, console.GetLogColor(log)));
             };
 
             return console;
+
+
+            string CreateLogText(qLog log) =>
+                string.Format(logFormat, log.message, log.time.ToString(timeFormat), log.logType);
+
+            string ColorText(string txt, qColor color) =>
+                $"\u001b[38;2;{color.red};{color.green};{color.blue}m{txt}\u001b[0m";
         }
 
         public static string ReadConsoleApplication(this GameConsole console)

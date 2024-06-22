@@ -41,9 +41,11 @@ namespace qASICRemote
                 .FindAttributeCommands<InspectorCommand>();
 
             GConsole = new GameConsole(QasicInstance, "MAIN", commands);
-            GConsole.ForConsoleApplication();
             GConsole.IncludeStackTraceInUnknownCommandExceptions = true;
             GConsole.Targets.Register(this);
+
+            Interface = new SystemConsoleInterface(GConsole);
+            Interface.CanExecute += Interface_CanExecute;
 
             AppDomain.CurrentDomain.ProcessExit += OnApplicationClose;
 
@@ -68,8 +70,9 @@ namespace qASICRemote
 
         public qClient client = null;
 
-        public qInstance QasicInstance = null;
-        public GameConsole GConsole = null;
+        public qInstance QasicInstance { get; private set; } = null;
+        public GameConsole GConsole { get; private set; } = null;
+        public SystemConsoleInterface Interface { get; private set; } = null;
 
         public InstanceConsoleManager consoleManager;
 
@@ -93,40 +96,36 @@ namespace qASICRemote
             GConsole.Log("-----------------------------------------------------");
             GConsole.Log("Type '.help' to list all commands");
 
-            while (true)
+            Interface.StartReading();
+        }
+
+        private bool Interface_CanExecute(string cmd)
+        {
+            var forceUseGConsole = GConsole.ReturnedValue is CommandPrompt;
+
+            if (forceUseGConsole)
+                return true;
+
+            if (cmd.StartsWith("."))
             {
-                var forceUseGConsole = GConsole.ReturnedValue is CommandPrompt;
-                var cmd = GConsole.ReadConsoleApplication();
-
-                if (string.IsNullOrWhiteSpace(cmd))
-                    continue;
-
-                if (forceUseGConsole)
-                {
-                    GConsole.Execute(cmd);
-                    continue;
-                }
-
-                if (cmd.StartsWith("."))
-                {
-                    GConsole.Execute(cmd.Substring(1, cmd.Length - 1));
-                    continue;
-                }
-
-                if (client.CurrentState != qClient.State.Connected)
-                {
-                    GConsole.LogError("Currently not connected to any application. Use '.' prefix to run commands for this application!");
-                    continue;
-                }
-
-                if (SelectedConsole == null)
-                {
-                    GConsole.LogError("No console selected!");
-                    continue;
-                }
-
-                consoleManager.Get(SelectedConsole.Name).SendCommand(cmd);
+                GConsole.Execute(cmd.Substring(1, cmd.Length - 1));
+                return false;
             }
+
+            if (client.CurrentState != qClient.State.Connected)
+            {
+                GConsole.LogError("Currently not connected to any application. Use '.' prefix to run commands for this application!");
+                return false;
+            }
+
+            if (SelectedConsole == null)
+            {
+                GConsole.LogError("No console selected!");
+                return false;
+            }
+
+            consoleManager.Get(SelectedConsole.Name).SendCommand(cmd);
+            return false;
         }
 
         private void ConsoleManager_OnConsoleRegister(GameConsole console)

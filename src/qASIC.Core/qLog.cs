@@ -43,6 +43,9 @@ namespace qASIC
         public string colorTag = qDebug.DEFAULT_COLOR_TAG;
         public qColor color = qColor.White;
 
+        public static qLog CreateNow(string message) =>
+            new qLog(DateTime.Now, message);
+
         public static qLog CreateNow(string message, qColor color) =>
             new qLog(DateTime.Now, message, color);
 
@@ -57,6 +60,35 @@ namespace qASIC
 
         public override string ToString() =>
             $"[{time:HH:mm:ss}] [{logType}] {message}";
+
+        /// <summary>Changes message of the log.</summary>
+        /// <param name="message">New log message.</param>
+        /// <returns>Returns itself.</returns>
+        public qLog ChangeMessage(string message)
+        {
+            this.message = message;
+            return this;
+        }
+
+        /// <summary>Changes color of the log.</summary>
+        /// <param name="color">New log color.</param>
+        /// <returns>Returns itself.</returns>
+        public qLog ChangeColor(qColor color)
+        {
+            this.color = color;
+            colorTag = null;
+            return this;
+        }
+
+        /// <summary>Changes color of the log.</summary>
+        /// <param name="colorTag">New log color tag.</param>
+        /// <returns>Returns itself.</returns>
+        public qLog ChangeColor(string colorTag)
+        {
+            color = qColor.White;
+            this.colorTag = colorTag;
+            return this;
+        }
 
         public qPacket Write(qPacket packet) =>
             packet

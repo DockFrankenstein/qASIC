@@ -6,7 +6,6 @@ using qASIC.Console.Parsing.Arguments;
 using System;
 using System.Collections.Generic;
 using qASIC.Console.Commands.Prompts;
-using System.Linq;
 
 namespace qASIC.Console
 {
@@ -70,6 +69,7 @@ namespace qASIC.Console
         public string Name { get; private set; }
 
         public event Action<GameLog> OnLog;
+        public event Action<GameLog> OnUpdateLog;
 
         public List<GameLog> Logs { get; internal set; } = new List<GameLog>();
 
@@ -237,6 +237,12 @@ namespace qASIC.Console
         /// <param name="overwriteColor">If true, the console will not check for color attributes.</param>
         public void Log(GameLog log, int stackTraceIndex = 2, bool overwriteColor = true)
         {
+            if (Logs.Contains(log))
+            {
+                OnUpdateLog?.Invoke(log);
+                return;
+            }
+
             if (UseLogModifierAttributes && !overwriteColor)
             {
                 var stackTrace = new StackTrace();
