@@ -21,13 +21,16 @@ namespace qASIC.Communication
 
         public byte[] ReadCurrentBytes(int length)
         {
-            byte[] currentBytes = bytes.Count - position >= length ?
+            byte[] currentBytes = HasBytesFor(length) ?
                 bytes.GetRange(position, length).ToArray() :
                 new byte[length];
 
             position += length;
             return currentBytes;
         }
+
+        public bool HasBytesFor(int length) =>
+            bytes.Count - position >= length;
 
         public bool ReadBool() => BitConverter.ToBoolean(ReadCurrentBytes(1), 0);
         public byte ReadByte() => ReadCurrentBytes(1).First();

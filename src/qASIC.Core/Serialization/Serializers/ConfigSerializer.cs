@@ -323,7 +323,7 @@ namespace qASIC.Serialization.Serializers
         public ConfigValue Deserialize(string txt)
         {
             //txt = Regex.Replace(txt, "(?=#)(?!##.*)(?<!#).*?(.*)", string.Empty)
-            txt = string.Join("#", txt.Split("##")
+            txt = string.Join("#", txt.Split(new string[] { "##" }, StringSplitOptions.None)
                 .Select(x => Regex.Replace(txt, "(?=#).*?(.*)", string.Empty)));
 
             var lines = txt

@@ -58,6 +58,7 @@ namespace qASIC.Console
             });
 
             console.OnLog += (log) => Console_OnLog(console, log);
+            console.OnUpdateLog += (log) => Console_OnUpdateLog(console, log);
 
             if (Peer is Server server)
                 server.SendToAll(CC_ConsoleRegister.CreatePacket(console));
@@ -73,6 +74,7 @@ namespace qASIC.Console
             var console = RegisteredConsoles[name].Console;
             RegisteredConsoles.Remove(name);
             console.OnLog -= (log) => Console_OnLog(console, log);
+            console.OnUpdateLog -= (log) => Console_OnUpdateLog(console, log);
 
             if (Peer is Server server)
                 server.SendToAll(new CC_ConsoleDeregister().CreateEmptyPacketForConsole(console));
@@ -92,7 +94,13 @@ namespace qASIC.Console
         private void Console_OnLog(GameConsole console, qLog log)
         {
             if (Peer is Server server)
-                server.SendToAll(CC_ConsoleLog.BuildPacket(console, log));
+                server.SendToAll(CC_ConsoleLog.BuildPacket(console, log, false));
+        }
+
+        private void Console_OnUpdateLog(GameConsole console, qLog log)
+        {
+            if (Peer is Server server)
+                server.SendToAll(CC_ConsoleLog.BuildPacket(console, log, true));
         }
 
         public IEnumerator<RegisteredConsole> GetEnumerator() =>

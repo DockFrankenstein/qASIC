@@ -90,6 +90,20 @@ namespace qASIC
             return this;
         }
 
+        /// <summary>Copies data from a different log to itself.</summary>
+        /// <param name="other">Log to copy data from.</param>
+        /// <returns>Returns itself.</returns>
+        public qLog GetDataFromOther(qLog other)
+        {
+            time = other.time;
+            message = other.message;
+            logType = other.logType;
+            colorTag = other.colorTag;
+            color = other.color;
+
+            return this;
+        }
+
         public qPacket Write(qPacket packet) =>
             packet
             .Write(time.Ticks)
