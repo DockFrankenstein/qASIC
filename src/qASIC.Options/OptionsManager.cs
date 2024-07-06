@@ -10,15 +10,15 @@ namespace qASIC.Options
             this(new OptionTargetList().FindOptions(), serializer: serializer)
         { }
 
-        public OptionsManager(OptionTargetList targetList, bool ensureListHasAllTargets = true, OptionsSerializer serializer = null) :
-            this(null, targetList, ensureListHasAllTargets, serializer)
+        public OptionsManager(OptionTargetList targetList, OptionsSerializer serializer = null) :
+            this(null, targetList, serializer)
         { }
 
         public OptionsManager(qInstance instance, OptionsSerializer serializer = null) :
             this(instance, new OptionTargetList().FindOptions(), serializer: serializer)
         { }
 
-        public OptionsManager(qInstance instance, OptionTargetList targetList, bool ensureListHasAllTargets = true, OptionsSerializer serializer = null)
+        public OptionsManager(qInstance instance, OptionTargetList targetList, OptionsSerializer serializer = null)
         {
             Instance = instance;
 
@@ -26,12 +26,6 @@ namespace qASIC.Options
             Serializer = serializer ?? new OptionsSerializer();
 
             OptionsList.OnValueSet += List_OnChanged;
-
-            if (ensureListHasAllTargets)
-                EnsureListHasAllTargets();
-
-            Revert();
-            Apply();
         }
 
         private void List_OnChanged(OptionsList.ListItem[] items)
@@ -65,6 +59,14 @@ namespace qASIC.Options
 
         /// <summary>List of found options and registered objects.</summary>
         public OptionTargetList TargetList { get; private set; }
+
+        /// <summary>Initializes the options manager.</summary>
+        public void Initialize()
+        {
+            EnsureListHasAllTargets();
+            Revert();
+            Apply();
+        }
 
         /// <summary>Formats a <c>string</c> to be used as a key for an option.</summary>
         /// <param name="text">String to format.</param>
