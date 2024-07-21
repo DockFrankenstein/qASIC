@@ -49,9 +49,14 @@ namespace qASIC.Options
             }
         }
 
+        /// <summary>Finds and adds options to the list.</summary>
+        /// <returns>Itself.</returns>
         public OptionTargetList FindOptions() =>
             FindOptions<OptionAttribute>();
 
+        /// <summary>Finds and adds options marked with the specified attribute to the list.</summary>
+        /// <typeparam name="TOption">Attribute for marking options.</typeparam>
+        /// <returns>Itself.</returns>
         public OptionTargetList FindOptions<TOption>() where TOption : OptionAttribute
         {
             var methods = TypeFinder.FindMethodsWithAttribute<TOption>(Flags);
@@ -91,6 +96,11 @@ namespace qASIC.Options
             return this;
         }
 
+        /// <summary>Gets a value for an option.</summary>
+        /// <param name="registeredObjects">List of registered objects.</param>
+        /// <param name="name">Name of the option.</param>
+        /// <param name="value">The default value.</param>
+        /// <returns>If a value was able to be extracted.</returns>
         public bool TryGetValue(qRegisteredObjects registeredObjects, string name, out object value)
         {
             name = OptionsManager.FormatKeyString(name);
@@ -100,31 +110,40 @@ namespace qASIC.Options
 
             foreach (var item in items)
             {
-                try
-                {
-                    if (!item.CanGetValue) continue;
+                if (!item.CanGetValue) continue;
 
-                    if (item.IsStatic)
+                if (item.IsStatic)
+                {
+                    try
                     {
                         value = item.GetValue(null);
                         return true;
                     }
+                    catch { }
+                    continue;
+                }
 
-                    var targets = registeredObjects.Where(x => x?.GetType() == item.DeclaringType);
-
-                    foreach (var obj in targets)
+                var targets = registeredObjects.Where(x => x?.GetType() == item.DeclaringType);
+                    
+                foreach (var obj in targets)
+                {
+                    try
                     {
                         var val = item.GetValue(obj);
                         value = val;
                         return true;
                     }
+                    catch { }
                 }
-                catch { }
             }
 
             return false;
         }
 
+        /// <summary>Gets a default value for an option.</summary>
+        /// <param name="name">Name of the option.</param>
+        /// <param name="value">The default value.</param>
+        /// <returns>If a default value was able to be extracted.</returns>
         public bool TryGetDefalutValue(string name, out object value)
         {
             name = OptionsManager.FormatKeyString(name);
@@ -143,6 +162,10 @@ namespace qASIC.Options
             return false;
         }
 
+        /// <summary>Sets a value for an option.</summary>
+        /// <param name="registeredObjects">List of registered objects.</param>
+        /// <param name="name">Name of the option.</param>
+        /// <param name="value">Value to set.</param>
         public void Set(qRegisteredObjects registeredObjects, string name, object value)
         {
             name = OptionsManager.FormatKeyString(name);
@@ -176,6 +199,30 @@ namespace qASIC.Options
                         item.SetValue(obj, args);
                     }
                     catch { }
+                }
+            }
+        }
+
+        /// <summary>Loads values of options for an object.</summary>
+        /// <param name="obj">Object to load values for.</param>
+        /// <param name="list">List of option data.</param>
+        public void LoadValuesForObject(object obj, OptionsList list)
+        {
+            var type = obj.GetType();
+
+            foreach (var target in Targets)
+            {
+                if (!list.TryGetValue(target.Key, out var val)) continue;
+
+                var args = new ChangeOptionArgs()
+                {
+                    value = val.Value,
+                };
+
+                foreach (var item in target.Value)
+                {
+                    if (item.DeclaringType != type) continue;
+                    item.SetValue(obj, args);
                 }
             }
         }

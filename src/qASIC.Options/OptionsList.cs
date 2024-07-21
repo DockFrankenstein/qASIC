@@ -2,16 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace qASIC.Options
 {
     [Serializable]
     public class OptionsList : IEnumerable<KeyValuePair<string, OptionsList.ListItem>>
     {
-        /// <summary>Default binding flags used for finding option attributes.</summary>
-        public const BindingFlags DEFAULT_OPTION_BINDING_FLAGS = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-
         private Dictionary<string, ListItem> Values = new Dictionary<string, ListItem>();
 
         public event Action<ListItem[]> OnValueSet;

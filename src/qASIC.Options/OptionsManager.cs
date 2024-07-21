@@ -26,12 +26,19 @@ namespace qASIC.Options
             Serializer = serializer ?? new OptionsSerializer();
 
             OptionsList.OnValueSet += List_OnChanged;
+
+            RegisteredObjects.OnObjectRegistered += RegisteredObjects_OnObjectRegistered;
         }
 
         private void List_OnChanged(OptionsList.ListItem[] items)
         {
             foreach (var item in items)
                 TargetList.Set(RegisteredObjects, item.Name, item.Value);
+        }
+
+        private void RegisteredObjects_OnObjectRegistered(object obj)
+        {
+            TargetList.LoadValuesForObject(obj, OptionsList);
         }
 
         private qInstance _instance;
@@ -61,11 +68,15 @@ namespace qASIC.Options
         public OptionTargetList TargetList { get; private set; }
 
         /// <summary>Initializes the options manager.</summary>
-        public void Initialize()
+        /// <param name="log">If the change should be logged.</param>
+        public void Initialize(bool log = true)
         {
             EnsureListHasAllTargets();
-            Revert();
-            Apply();
+            Revert(false);
+            Apply(false);
+
+            if (log)
+                Logs.Log("Settings initialized!", "settings_init");
         }
 
         /// <summary>Formats a <c>string</c> to be used as a key for an option.</summary>
@@ -78,7 +89,7 @@ namespace qASIC.Options
         /// <param name="optionName">Name of the option.</param>
         /// <returns>The value.</returns>
         public object GetOption(string optionName) =>
-            OptionsList[optionName];
+            OptionsList[optionName].Value;
 
         /// <summary>Gets the value of an option.</summary>
         /// <param name="optionName">Name of the option.</param>
@@ -86,7 +97,7 @@ namespace qASIC.Options
         /// <returns>The value.</returns>
         public object GetOption(string optionName, object defaultValue) =>
             OptionsList.TryGetValue(optionName, out var val) ?
-            val :
+            val.Value :
             defaultValue;
 
         /// <summary>Gets the value of an option.</summary>
@@ -109,41 +120,48 @@ namespace qASIC.Options
         /// <summary>Changes the value of a given option.</summary>
         /// <param name="optionName">Name of the option.</param>
         /// <param name="value">Value to set.</param>
-        public void SetOption(string optionName, object value)
+        /// <param name="log">If the change should be logged.</param>
+        public void SetOption(string optionName, object value, bool log = true)
         {
             OptionsList.Set(optionName, value);
-            Logs.Log($"Changed option '{optionName}' to '{value}'.", "settings_set");
+            if (log)
+                Logs.Log($"Changed option '{optionName}' to '{value}'.", "settings_set");
         }
 
         /// <summary>Changes the value of a given option and applies it. 
         /// It's the same as calling <see cref="SetOption(string, object)"/> and <see cref="Apply"/>.</summary>
         /// <param name="optionName">Name of the option.</param>
         /// <param name="value">Value to set.</param>
-        public void SetOptionAndApply(string optionName, object value)
+        /// <param name="log">If the change should be logged.</param>
+        public void SetOptionAndApply(string optionName, object value, bool log = true)
         {
-            SetOption(optionName, value);
+            SetOption(optionName, value, log);
             Apply();
         }
 
         /// <summary>Changes values from a different <see cref="Options.OptionsList">.</summary>
         /// <param name="list">List containing options to set.</param>
-        public void SetOptions(OptionsList list)
+        /// <param name="log">If the change should be logged.</param>
+        public void SetOptions(OptionsList list, bool log = true)
         {
             OptionsList.MergeList(list);
-            Logs.Log($"Applied options: {string.Join("\n", list.Select(x => $"- {x}"))}", "settings_set_multiple");
+            if (log)
+                Logs.Log($"Applied options: {string.Join("\n", list.Select(x => $"- {x}"))}", "settings_set_multiple");
         }
 
         /// <summary>Changes values from a different <see cref="Options.OptionsList"> and applies them 
         /// It's the same as calling <see cref="SetOptions"/> and <see cref="Apply"/>.</summary>
         /// <param name="list">List containing options to set.</param>
-        public void SetOptionsAndApply(OptionsList list)
+        /// <param name="log">If the change should be logged.</param>
+        public void SetOptionsAndApply(OptionsList list, bool log = true)
         {
-            SetOptions(list);
+            SetOptions(list, log);
             Apply();
         }
 
         /// <summary>Applies currently set options by saving them.</summary>
-        public void Apply()
+        /// <param name="log">If the change should be logged.</param>
+        public void Apply(bool log = true)
         {
             try
             {
@@ -155,11 +173,13 @@ namespace qASIC.Options
                 return;
             }
 
-            Logs.Log($"Successfully saved options at {Serializer.Path}", "settings_save_success");
+            if (log)
+                Logs.Log($"Successfully saved options at {Serializer.Path}", "settings_save_success");
         }
 
         /// <summary>Reverts options from the save file.</summary>
-        public void Revert()
+        /// <param name="log">If the change should be logged.</param>
+        public void Revert(bool log = true)
         {
             try
             {
@@ -171,14 +191,17 @@ namespace qASIC.Options
                 return;
             }
 
-            Logs.Log("Successfully loaded options.", "settings_load_success");
+            if (log)
+                Logs.Log("Successfully loaded options.", "settings_load_success");
         }
 
         /// <summary>Ensures the list of options is properly generated using the list of targets that were found in <see cref="TargetList"/>.</summary>
-        public void EnsureListHasAllTargets()
+        /// <param name="log">If the change should be logged.</param>
+        public void EnsureListHasAllTargets(bool log = true)
         {
             OptionsList.EnsureTargets(TargetList, RegisteredObjects);
-            Logs.Log($"Created options from target list.", "settings_ensure_targets");
+            if (log)
+                Logs.Log($"Created options from target list.", "settings_ensure_targets");
         }
     }
 }
