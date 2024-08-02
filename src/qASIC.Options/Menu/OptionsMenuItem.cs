@@ -2,7 +2,6 @@
 
 namespace qASIC.Options.Menu
 {
-    [Serializable]
     public abstract class OptionsMenuItem
     {
         public string name;
