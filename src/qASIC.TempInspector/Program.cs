@@ -44,7 +44,7 @@ namespace qASICRemote
             GConsole.IncludeStackTraceInUnknownCommandExceptions = true;
             GConsole.Targets.Register(this);
 
-            Interface = new SystemConsoleInterface(GConsole);
+            Interface = new SystemConsoleUI(GConsole);
             Interface.CanExecute += Interface_CanExecute;
 
             AppDomain.CurrentDomain.ProcessExit += OnApplicationClose;
@@ -72,7 +72,7 @@ namespace qASICRemote
 
         public qInstance QasicInstance { get; private set; } = null;
         public GameConsole GConsole { get; private set; } = null;
-        public SystemConsoleInterface Interface { get; private set; } = null;
+        public SystemConsoleUI Interface { get; private set; } = null;
 
         public InstanceConsoleManager consoleManager;
 

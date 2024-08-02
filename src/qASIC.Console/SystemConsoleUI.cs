@@ -7,13 +7,13 @@ using SysConsole = System.Console;
 namespace qASIC.Console
 {
     /// <summary>Class responsible for displaying and reading information from a Console Application window for a <see cref="GameConsole"/> instance.</summary>
-    public class SystemConsoleInterface
+    public class SystemConsoleUI
     {
-        public SystemConsoleInterface() : this(new GameConsole("MAIN")) { }
+        public SystemConsoleUI() : this(new GameConsole("MAIN")) { }
 
-        public SystemConsoleInterface(qInstance instance) : this (new GameConsole(instance, "MAIN")) { }
+        public SystemConsoleUI(qInstance instance) : this (new GameConsole(instance, "MAIN")) { }
 
-        public SystemConsoleInterface(GameConsole console)
+        public SystemConsoleUI(GameConsole console)
         {
             Console = console;
         }
