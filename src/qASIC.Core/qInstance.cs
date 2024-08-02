@@ -48,8 +48,6 @@ namespace qASIC
             if (autoStartRemoteInspectorServer)
                 RemoteInspectorServer.Start();
 
-            qEnviroment.Initialize();
-
             qDebug.OnLog += QDebug_OnLog;
         }
 

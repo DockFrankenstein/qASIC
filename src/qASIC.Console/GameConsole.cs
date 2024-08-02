@@ -91,7 +91,7 @@ namespace qASIC.Console
 
         public GameConsoleTheme Theme { get; set; } = GameConsoleTheme.Default;
 
-        /// <summary>Should the console log messages from <see cref="qDebug"/>></summary>
+        /// <summary>Should the console log messages from <see cref="qDebug"/>.</summary>
         public bool LogQDebug { get; set; } = true;
         
         /// <summary>Determines if console should try looking for attributes that can change log messages and colors.</summary>
@@ -102,6 +102,10 @@ namespace qASIC.Console
 
         /// <summary>Determines if it should include exceptions when logging unknown errors with executing commands.</summary>
         public bool IncludeStackTraceInUnknownCommandExceptions { get; set; } = false;
+
+        /// <summary>Initializes reflections. This will happen automatically when reflections are needed, but it can cause lag, so it's better to do it once when the application launches.</summary>
+        public void InitializeReflections() =>
+            ConsoleReflections.Initialize();
 
         #region Registering targets
         public qRegisteredObjects Targets { get; private set; } = new qRegisteredObjects();
