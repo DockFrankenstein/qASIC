@@ -44,6 +44,16 @@ namespace qASIC.Console
                 Log(log, 4, false);
         }
 
+        /// <summary>Main static instance of <see cref="GameConsole"/> that was set using <see cref="SetAsMain"/>.</summary>
+        public static GameConsole Main { get; private set; }
+        /// <summary>Sets this instance as main to make it accessible from property <see cref="Main"/>.</summary>
+        /// <returns>Returns itself.</returns>
+        public GameConsole SetAsMain()
+        {
+            Main = this;
+            return this;
+        }
+
         private qInstance _instance;
         public qInstance Instance
         {

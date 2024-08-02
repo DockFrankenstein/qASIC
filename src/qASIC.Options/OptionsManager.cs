@@ -41,6 +41,16 @@ namespace qASIC.Options
             TargetList.LoadValuesForObject(obj, OptionsList);
         }
 
+        /// <summary>Main static instance of <see cref="OptionsManager"/> that was set using <see cref="SetAsMain"/>.</summary>
+        public static OptionsManager Main { get; private set; }
+        /// <summary>Sets this instance as main to make it accessible from property <see cref="Main"/>.</summary>
+        /// <returns>Returns itself.</returns>
+        public OptionsManager SetAsMain()
+        {
+            Main = this;
+            return this;
+        }
+
         private qInstance _instance;
         public qInstance Instance
         {

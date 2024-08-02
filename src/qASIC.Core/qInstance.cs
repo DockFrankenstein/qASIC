@@ -17,6 +17,16 @@ namespace qASIC
             Services = new qServices(this);
         }
 
+        /// <summary>Main static instance of <see cref="qInstance"/> that was set using <see cref="SetAsMain"/>.</summary>
+        public static qInstance Main { get; private set; }
+        /// <summary>Sets this instance as main to make it accessible from property <see cref="Main"/>.</summary>
+        /// <returns>Returns itself.</returns>
+        public qInstance SetAsMain()
+        {
+            Main = this;
+            return this;
+        }
+
         public RemoteAppInfo AppInfo
         {
             get => (RemoteAppInfo)RemoteInspectorServer.AppInfo;
