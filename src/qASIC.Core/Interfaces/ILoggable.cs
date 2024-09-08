@@ -1,9 +1,11 @@
-﻿namespace qASIC.Core.Interfaces
+﻿using System.Collections.Generic;
+
+namespace qASIC.Core.Interfaces
 {
     public interface ILoggable
     {
         LogManager Logs { get; set; }
 
-        ILoggable[] Loggables { get; }
+        IEnumerable<ILoggable> Loggables { get; }
     }
 }

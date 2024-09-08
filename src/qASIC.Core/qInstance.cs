@@ -1,10 +1,13 @@
 ﻿using qASIC.Communication;
 using qASIC.Communication.Components;
 using qASIC.CommComponents;
+using qASIC.Core.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace qASIC
 {
-    public class qInstance
+    public class qInstance : ILoggable
     {
         public qInstance(RemoteAppInfo appInfo = null)
         {
@@ -35,6 +38,12 @@ namespace qASIC
 
         public CommsComponentCollection RemoteInspectorComponents { get; private set; }
         public Server RemoteInspectorServer { get; private set; }
+
+        public LogManager Logs { get; set; } = new LogManager();
+        public IEnumerable<ILoggable> Loggables => RegisteredObjects
+            .Where(x => x is ILoggable)
+            .Select(x => x as ILoggable);
+
         public bool forwardDebugLogs = true;
         public bool autoStartRemoteInspectorServer = true;
 

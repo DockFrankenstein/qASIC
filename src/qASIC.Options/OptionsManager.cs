@@ -1,5 +1,6 @@
 ﻿using qASIC.Core.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace qASIC.Options
@@ -64,7 +65,7 @@ namespace qASIC.Options
         }
 
         public LogManager Logs { get; set; } = new LogManager();
-        public ILoggable[] Loggables => new ILoggable[0];
+        public IEnumerable<ILoggable> Loggables => Array.Empty<ILoggable>();
 
         public OptionsSerializer Serializer { get; set; }
 

@@ -6,6 +6,8 @@ using qASIC.Console.Parsing.Arguments;
 using System;
 using System.Collections.Generic;
 using qASIC.Console.Commands.Prompts;
+using qASIC.Core.Interfaces;
+using System.Linq;
 
 namespace qASIC.Console
 {
@@ -60,20 +62,15 @@ namespace qASIC.Console
             get => _instance;
             set
             {
+                var oldGetLogsFromInstance = GetLogsFromInstance;
+                GetLogsFromInstance = false;
+
                 Targets.StopSyncingWithOther(_instance?.RegisteredObjects);
                 _instance = value;
                 Targets.SyncWithOther(_instance?.RegisteredObjects);
+
+                GetLogsFromInstance = oldGetLogsFromInstance;
             }
-        }
-
-        void Instance_OnObjectRegistered(object obj)
-        {
-            Targets.Register(obj);
-        }
-
-        void Instance_OnObjectDeregistered(object obj)
-        {
-            Targets.Deregister(obj);
         }
 
         public string Name { get; private set; }
@@ -210,6 +207,62 @@ namespace qASIC.Console
             }
 
             return null;
+        }
+        #endregion
+
+        #region Registering Loggables
+        List<ILoggable> RegisteredLoggables { get; set; } = new List<ILoggable>();
+
+        private bool _getLogsFromInstance = true;
+        /// <summary>Whenever to log messages from <see cref="Instance"/>.</summary>
+        public bool GetLogsFromInstance
+        {
+            get => _getLogsFromInstance;
+            set
+            {
+                if (_getLogsFromInstance == value) return;
+                _getLogsFromInstance = value;
+
+                if (_instance == null) return;
+
+                switch (_getLogsFromInstance)
+                {
+                    case true:
+                        RegisterLoggable(_instance);
+                        break;
+                    case false:
+                        DeregisterLoggable(_instance);
+                        break;
+                }
+            }
+        }
+
+        /// <summary>Registers to messages from an <see cref="ILoggable"/> and it's children.</summary>
+        /// <param name="loggable">Loggable to register.</param>
+        public void RegisterLoggable(ILoggable loggable)
+        {
+            var loggables = loggable.GetAllLoggables()
+                .Except(RegisteredLoggables);
+
+            foreach (var item in loggables)
+            {
+                item.Logs.OnLog += a => Log(a);
+                RegisteredLoggables.Add(item);
+            }
+        }
+
+        /// <summary>Deregisters from messages from an <see cref="ILoggable"/> and it's children.</summary>
+        /// <param name="loggable">Loggable to deregister.</param>
+        public void DeregisterLoggable(ILoggable loggable)
+        {
+            var loggables = loggable.GetAllLoggables()
+                .Intersect(RegisteredLoggables);
+
+            foreach (var item in loggables)
+            {
+                item.Logs.OnLog -= a => Log(a);
+                RegisteredLoggables.Remove(item);
+            }
         }
         #endregion
 
