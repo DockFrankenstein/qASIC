@@ -10,7 +10,7 @@
         public override object Run(CommandArgs args)
         {
             args.CheckArgumentCount(1);
-            args.console.Log(args[1].arg);
+            Logs.Log(args[1].arg);
             return null;
         }
     }

@@ -159,7 +159,7 @@ namespace qASIC.Console
                 }
 
                 if (CanExecute?.Invoke(cmd) == false)
-                    return;
+                    continue;
 
                 Console.Execute(cmd);
             }

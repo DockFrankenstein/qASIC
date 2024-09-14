@@ -46,11 +46,11 @@ namespace qASIC.Console.Commands.BuiltIn
 
                 if (command.DetailedDescription == null && command.Description == null)
                 {
-                    args.console.Log($"No detailed help avaliable for command '{targetCommand}'");
+                    Logs.Log($"No detailed help avaliable for command '{targetCommand}'");
                     return null;
                 }
 
-                args.console.Log($"Help for command '{command.CommandName}': {command.DetailedDescription ?? command.Description}", "info");
+                Logs.Log($"Help for command '{command.CommandName}': {command.DetailedDescription ?? command.Description}", "info");
                 return null;
             }
 
@@ -66,7 +66,7 @@ namespace qASIC.Console.Commands.BuiltIn
             for (int i = index * PageCommandLimit; i < Math.Max(index * (PageCommandLimit + 1), commandList.Length); i++)
                 stringBuilder.AppendLine($"{commandList[i].CommandName} - {commandList[i].Description ?? "No description"}");
 
-            args.console.Log(stringBuilder.ToString(), "info");
+            Logs.Log(stringBuilder.ToString(), "info");
 
             return null;
         }

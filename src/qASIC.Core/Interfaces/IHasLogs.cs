@@ -2,6 +2,6 @@
 {
     public interface IHasLogs
     {
-        LogManager Logs { get; set; }
+        LogManager Logs { get; }
     }
 }

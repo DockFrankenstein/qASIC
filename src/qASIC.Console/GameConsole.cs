@@ -37,13 +37,22 @@ namespace qASIC.Console
 
             CommandParser = parser ?? new QuashParser();
 
+            foreach (var item in CommandList.Where(x => x is IHasLogs))
+                RegisterLoggable(item as IHasLogs);
+
+            CommandList.OnCommandsAdded += a =>
+            {
+                foreach (var item in a.Where(x => x is IHasLogs))
+                    RegisterLoggable(item as IHasLogs);
+            };
+
             qDebug.OnLog += QDebug_OnLog;
         }
 
         private void QDebug_OnLog(GameLog log)
         {
             if (LogQDebug)
-                Log(log, 4, false);
+                Log(log, 4, true);
         }
 
         /// <summary>Main static instance of <see cref="GameConsole"/> that was set using <see cref="SetAsMain"/>.</summary>
@@ -251,7 +260,7 @@ namespace qASIC.Console
         /// <param name="message">Message to log.</param>
         /// <param name="stackTraceIndex">Index used for gathering log customization attributes.</param>
         public void Log(string message, int stackTraceIndex = 2) =>
-            Log(GameLog.CreateNow(message, qDebug.DEFAULT_COLOR_TAG), stackTraceIndex, false);
+            Log(GameLog.CreateNow(message, qDebug.DEFAULT_COLOR_TAG), stackTraceIndex, true);
 
         /// <summary>Logs a warning message to the console.</summary>
         /// <param name="message">Message to log.</param>
@@ -281,8 +290,8 @@ namespace qASIC.Console
 
         /// <summary>Logs a log to the console.</summary>
         /// <param name="stackTraceIndex">Index used for gathering log customization attributes.</param>
-        /// <param name="overwriteColor">If true, the console will not check for color attributes.</param>
-        public void Log(GameLog log, int stackTraceIndex = 2, bool overwriteColor = true)
+        /// <param name="useLogModifiers">If true, the console will check for color attributes.</param>
+        public void Log(GameLog log, int stackTraceIndex = 2, bool useLogModifiers = false)
         {
             if (Logs.Contains(log))
             {
@@ -290,7 +299,7 @@ namespace qASIC.Console
                 return;
             }
 
-            if (UseLogModifierAttributes && !overwriteColor)
+            if (UseLogModifierAttributes && useLogModifiers)
             {
                 var stackTrace = new StackTrace();
                 var stackFrame = stackTrace.GetFrame(stackTraceIndex);

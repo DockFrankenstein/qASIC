@@ -10,12 +10,21 @@ namespace qASIC.Console.Commands
     {
         private List<RegisteredCommand> Commands { get; set; } = new List<RegisteredCommand>();
 
+        public Action<IEnumerable<IGameCommand>> OnCommandsAdded;
+
         /// <summary>Adds command to the list.</summary>
         /// <param name="command">Command to add.</param>
-        public GameCommandList AddCommand(IGameCommand command)
+        /// <returns>Returns itself.</returns>
+        public GameCommandList AddCommand(IGameCommand command) =>
+            AddCommandRage(new IGameCommand[] { command });
+
+        /// <summary>Adds commands to the list.</summary>
+        /// <param name="command">Collection of commands to add.</param>
+        /// <returns>Returns itself.</returns>
+        public GameCommandList AddCommandRage(IEnumerable<IGameCommand> commands)
         {
-            var registeredCommand = new RegisteredCommand(command);
-            Commands.Add(registeredCommand);
+            Commands.AddRange(commands.Select(x => new RegisteredCommand(x)));
+            OnCommandsAdded?.Invoke(commands);
             return this;
         }
 
@@ -38,11 +47,10 @@ namespace qASIC.Console.Commands
             var commandTypes = TypeFinder.FindClassesWithAttribute(type, BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(x => typeof(IGameCommand).IsAssignableFrom(x));
 
-            var commands = TypeFinder.CreateConstructorsFromTypes<IGameCommand>(commandTypes);
+            var commands = TypeFinder.CreateConstructorsFromTypes<IGameCommand>(commandTypes)
+                .Where(x => x != null);
 
-            foreach (var command in commands)
-                if (command != null)
-                    AddCommand(command);
+            AddCommandRage(commands);
 
             return this;
         }
@@ -70,6 +78,7 @@ namespace qASIC.Console.Commands
                 .Concat(fields)
                 .Concat(properties);
 
+            var addedCommands = new List<IGameCommand>();
             foreach (var member in targets)
             {
                 var attr = (CommandAttribute)member.GetCustomAttribute(type);
@@ -93,10 +102,13 @@ namespace qASIC.Console.Commands
 
                 command.Targets.Add(memberTarget);
 
-                if (!commandExists)
-                    AddCommand(command);
+                if (commandExists) continue;
+
+                addedCommands.Add(command);
+                Commands.Add(new RegisteredCommand(command));
             }
 
+            OnCommandsAdded?.Invoke(addedCommands);
             return this;
         }
 

@@ -12,7 +12,7 @@ namespace qASIC.Console.Commands.BuiltIn
         public override object Run(CommandArgs args)
         {
             args.CheckArgumentCount(0);
-            args.console.Log("Goodbye");
+            Logs.Log("Goodbye");
             Environment.Exit(0);
             return null;
         }
