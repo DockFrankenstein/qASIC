@@ -41,7 +41,6 @@ namespace qASICRemote
                 .FindAttributeCommands<InspectorCommand>();
 
             GConsole = new GameConsole(QasicInstance, "MAIN", commands);
-            GConsole.IncludeStackTraceInUnknownCommandExceptions = true;
             GConsole.Targets.Register(this);
 
             Interface = new SystemConsoleUI(GConsole);

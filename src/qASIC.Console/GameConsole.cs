@@ -31,7 +31,7 @@ namespace qASIC.Console
 
             Name = name;
             CommandList = commandList ?? new GameCommandList()
-                .FindBuiltInCommands()
+                .AddBuildInCommands()
                 .FindCommands()
                 .FindAttributeCommands();
 
@@ -104,10 +104,10 @@ namespace qASIC.Console
         public bool UseLogModifierAttributes { get; set; } = true;
 
         /// <summary>Determines if it should include exceptions when logging normal errors with executing commands.</summary>
-        public bool IncludeStackTraceInCommandExceptions { get; set; } = true;
+        public bool IncludeStackTraceInCommandExceptions { get; set; } = false;
 
         /// <summary>Determines if it should include exceptions when logging unknown errors with executing commands.</summary>
-        public bool IncludeStackTraceInUnknownCommandExceptions { get; set; } = false;
+        public bool IncludeStackTraceInUnknownCommandExceptions { get; set; } = true;
 
         /// <summary>Initializes reflections. This will happen automatically when reflections are needed, but it can cause lag, so it's better to do it once when the application launches.</summary>
         public void InitializeReflections() =>
