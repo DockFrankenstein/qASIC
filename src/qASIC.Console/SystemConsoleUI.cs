@@ -55,8 +55,8 @@ namespace qASIC.Console
 
             var txt = CreateLogText(log);
             VisibleLogs.Add(log, new LogData()
-            { 
-                consoleTop = SysConsole.WindowTop,
+            {
+                consoleTop = SysConsole.CursorTop,
                 lineLength = txt.Length,
             });
 
@@ -141,7 +141,7 @@ namespace qASIC.Console
 
                         cmd = KeyPrompt.keyNames.Backward[promptKey];
 
-                        if (promptKey != KeyPrompt.NavigationKey.None)
+                        if (promptKey == KeyPrompt.NavigationKey.None)
                         {
                             if (!char.IsSymbol(key.KeyChar))
                             {
