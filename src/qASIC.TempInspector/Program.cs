@@ -37,7 +37,7 @@ namespace qASICRemote
             };
 
             var commands = new qASIC.Console.Commands.GameCommandList()
-                .FindBuiltInCommands()
+                .AddBuildInCommands()
                 .FindAttributeCommands<InspectorCommand>();
 
             GConsole = new GameConsole(QasicInstance, "MAIN", commands);

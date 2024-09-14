@@ -3,7 +3,6 @@ using System;
 
 namespace qASIC.Console.Commands.BuiltIn
 {
-    [BuiltInCommandTarget]
     public class Help : GameCommand
     {
         public override string CommandName => "help";

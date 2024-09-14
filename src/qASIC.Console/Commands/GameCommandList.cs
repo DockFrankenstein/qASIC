@@ -28,20 +28,33 @@ namespace qASIC.Console.Commands
             return this;
         }
 
-        public GameCommandList FindBuiltInCommands() =>
-            FindCommands<BuiltInCommandTargetAttribute>();
+        /// <summary>Adds all built-in commands to the list.</summary>
+        /// <returns>Returns itself.</returns>
+        public GameCommandList AddBuildInCommands() =>
+            AddCommandRage(new IGameCommand[]
+            {
+                new BuiltIn.Clear(),
+                new BuiltIn.Echo(),
+                new BuiltIn.Exit(),
+                new BuiltIn.Hello(),
+                new BuiltIn.Help(),
+                new BuiltIn.Version(),
+            });
 
-        /// <summary>Finds and adds commands to the list that use <see cref="StandardConsoleCommandAttribute"/>.</summary>
+        /// <summary>Finds and adds commands to the list that use <see cref="ConsoleCommandAttribute"/>.</summary>
+        /// <returns>Returns itself.</returns>
         public GameCommandList FindCommands() =>
-            FindCommands<StandardConsoleCommandAttribute>();
+            FindCommands<ConsoleCommandAttribute>();
 
         /// <summary>Finds and adds commands to the list that use the specified attribute.</summary>
         /// <typeparam name="T">Type of attribute used by target commands.</typeparam>
+        /// <returns>Returns itself.</returns>
         public GameCommandList FindCommands<T>() where T : Attribute =>
             FindCommands(typeof(T));
 
         /// <summary>Finds and adds commands to the list that use the specified attribute.</summary>
         /// <param name="type">Type of attribute used by target commands.</param>
+        /// <returns>Returns itself.</returns>
         public GameCommandList FindCommands(Type type)
         {
             var commandTypes = TypeFinder.FindClassesWithAttribute(type, BindingFlags.Public | BindingFlags.NonPublic)
@@ -55,12 +68,18 @@ namespace qASIC.Console.Commands
             return this;
         }
 
+        /// <summary>Finds and adds methods, properties and fields marked with <see cref="CommandAttribute"/>.</summary>
+        /// <returns>Returns itself.</returns>
         public GameCommandList FindAttributeCommands() =>
             FindAttributeCommands<CommandAttribute>();
 
+        /// <summary>Finds and adds methods, properties and fields marked with the specified attribute.</summary>
+        /// <returns>Returns itself.</returns>
         public GameCommandList FindAttributeCommands<T>() where T : CommandAttribute =>
             FindAttributeCommands(typeof(T));
 
+        /// <summary>Finds and adds methods, properties and fields marked with the specified attribute.</summary>
+        /// <returns>Returns itself.</returns>
         public GameCommandList FindAttributeCommands(Type type)
         {
             const BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;

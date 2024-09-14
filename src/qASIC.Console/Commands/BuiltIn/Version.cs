@@ -3,7 +3,6 @@ using System.Text;
 
 namespace qASIC.Console.Commands.BuiltIn
 {
-    [BuiltInCommandTarget]
     public class Version : GameCommand
     {
         public override string CommandName => "version";

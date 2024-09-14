@@ -2,7 +2,6 @@
 
 namespace qASIC.Console.Commands.BuiltIn
 {
-    [BuiltInCommandTarget]
     public class Exit : GameCommand
     {
         public override string CommandName => "exit";

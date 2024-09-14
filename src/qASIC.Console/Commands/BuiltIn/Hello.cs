@@ -1,6 +1,5 @@
 ﻿namespace qASIC.Console.Commands.BuiltIn
 {
-    [BuiltInCommandTarget]
     public class Hello : GameCommand
     {
         public override string CommandName => "helloworld";
