@@ -237,6 +237,9 @@ namespace qASIC.Communication
                     Logs.LogError($"Unexpected error while processing data: {e}");
                 }
             }
+
+            public override string ToString() =>
+                $"Server Client (id: {id})";
         }
     }
 }

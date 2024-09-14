@@ -74,7 +74,14 @@ namespace qASIC.Communication.Components
                 targetServerClient = serverClient,
             };
 
-            targetComp.Read(args);
+            try
+            {
+                targetComp.Read(args);
+            }
+            catch (Exception e)
+            {
+                server.Logs.LogError($"There was an error while reading packet from client {serverClient}: {e}");
+            }
         }
 
         public void HandlePacketForClient(qClient client, qPacket packet)
