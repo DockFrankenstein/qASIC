@@ -32,10 +32,10 @@
             switch (packetType)
             {
                 case PacketType.Server:
-                    server!.OnLog?.Invoke(message);
+                    server!.Logs.Log(message);
                     break;
                 case PacketType.Client:
-                    client!.OnLog?.Invoke(message);
+                    client!.Logs.Log(message);
                     break;
             }
         }

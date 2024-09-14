@@ -7,10 +7,10 @@
             switch (args.packetType)
             {
                 case PacketType.Server:
-                    args.server.OnLog?.Invoke($"Received debug message");
+                    args.server.Logs.Log($"Received debug message");
                     break;
                 case PacketType.Client:
-                    args.client.OnLog?.Invoke($"Received debug message");
+                    args.client.Logs.Log($"Received debug message");
                     break;
             }
         }

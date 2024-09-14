@@ -12,7 +12,7 @@ namespace qASIC.Communication.Components
             {
                 case PacketType.Server:
                     args.server.Send(args.targetServerClient, CreateServerResponsePacket(args.server));
-                    args.server.OnLog?.Invoke($"Client connected id: '{args.targetServerClient.id}'");
+                    args.server.Logs.Log($"Client connected id: '{args.targetServerClient.id}'");
                     args.server.OnClientConnect?.Invoke(args.targetServerClient);
                     break;
                 case PacketType.Client:
@@ -22,16 +22,16 @@ namespace qASIC.Communication.Components
 
                     if (info.protocolVersion > Constants.PROTOCOL_VERSION)
                     {
-                        args.client?.OnLog?.Invoke($"Server uses a newer version of the communication protocol that is currently unsupported by this application. Please update communication library version to latest!");
+                        args.client?.Logs.Log($"Server uses a newer version of the communication protocol that is currently unsupported by this application. Please update communication library version to latest!");
                         args.client?.Disconnect();
                         return;
                     }
 
-                    args.client?.OnLog?.Invoke($"Connected to project using protocol version: {info.protocolVersion}");
+                    args.client?.Logs.Log($"Connected to project using protocol version: {info.protocolVersion}");
                     args.client.AppInfo = info;
                     args.client.CurrentState = qClient.State.Connected;
                     args.client.receivedPing = true;
-                    args.client.OnLog?.Invoke("Client connected");
+                    args.client.Logs.Log("Client connected");
                     args.client.OnConnect?.Invoke();
 
                     OnRead?.Invoke(info);

@@ -59,7 +59,7 @@ namespace qASICRemote
             client.OnDisconnect += Client_OnDisconnect;
             client.OnConnect += Client_OnConnect;
             client.OnStart += Client_OnStart;
-            client.OnLog += a => GConsole.Log($"[Client] {a}", new qColor(179, 255, 254));
+            client.Logs.OnLog += a => GConsole.Log($"[Client] {a}", new qColor(179, 255, 254));
 
             consoleManager = new InstanceConsoleManager(client);
             consoleManager.CC_Log.OnRead += CC_Log_OnRead;

@@ -3,10 +3,11 @@ using System.Net.Sockets;
 using qASIC.Communication.Components;
 using System.Collections.Generic;
 using System;
+using qASIC.Core;
 
 namespace qASIC.Communication
 {
-    public class Server : IPeer
+    public class Server : IPeer, IHasLogs
     {
         public Server(CommsComponentCollection components, int port)
         {
@@ -28,24 +29,25 @@ namespace qASIC.Communication
         public TcpListener Listener { get; private set; }
 
         public Action<Client> OnClientConnect;
-        public Action<string> OnLog;
 
         int nextClientId;
         public bool logPacketSend = false;
+
+        public LogManager Logs { get; set; } = new LogManager();
 
         public void Start()
         {
             if (IsActive)
                 throw new Exception("Cannot start server, server is already active!");
 
-            OnLog?.Invoke("Starting server...");
+            Logs.Log("Starting server...");
             Listener.Start();
             Listener.BeginAcceptTcpClient(new AsyncCallback(HandleClientConnect), null);
 
             nextClientId = 0;
             IsActive = true;
 
-            OnLog?.Invoke("Server is now active!");
+            Logs.Log("Server is now active!");
         }
 
         public void Stop(bool notifyClients = true)
@@ -68,12 +70,12 @@ namespace qASIC.Communication
                     break;
             }
 
-            OnLog?.Invoke("Stopping server...");
+            Logs.Log("Stopping server...");
             Listener.Stop();
 
             IsActive = false;
 
-            OnLog?.Invoke("Stopped server");
+            Logs.Log("Stopped server");
         }
 
         public void DisconnectClient(Client client)
@@ -86,6 +88,7 @@ namespace qASIC.Communication
         {
             client.DisconnectLocal();
             Clients.Remove(client);
+            Logs.UnregisterLoggable(client);
         }
 
         public void ChangePort(int port)
@@ -111,17 +114,18 @@ namespace qASIC.Communication
 
                 Listener.BeginAcceptTcpClient(new AsyncCallback(HandleClientConnect), null);
 
-                Client newClient = new Client(nextClientId, clientSocket, HandleDataReceive, OnLog);
+                Client newClient = new Client(nextClientId, clientSocket, HandleDataReceive);
+                Logs.RegisterLoggable(newClient);
                 Clients.Add(newClient);
                 newClient.Initialize();
 
                 nextClientId++;
 
-                OnLog?.Invoke($"Connection received, creating client id: {newClient.id}");
+                Logs.Log($"Connection received, creating client id: {newClient.id}");
             }
             catch (Exception e)
             {
-                OnLog?.Invoke($"[Error] There was an error while connecting client: {e}");
+                Logs.LogError($"There was an error while connecting client: {e}");
             }
         }
 
@@ -141,14 +145,14 @@ namespace qASIC.Communication
             try
             {
                 if (logPacketSend)
-                    OnLog?.Invoke($"Sending to client id:{client.id} - {packet}");
+                    Logs.Log($"Sending to client id:{client.id} - {packet}");
 
                 var data = packet.ToArray();
                 client.Stream.BeginWrite(data, 0, data.Length, null, null);
             }
             catch (Exception e)
             {
-                OnLog?.Invoke($"[Error] There was an error while sending data to client '{client.id}': {e}");
+                Logs.LogError($"[Error] There was an error while sending data to client '{client.id}': {e}");
             }
         }
 
@@ -164,9 +168,9 @@ namespace qASIC.Communication
         #endregion
 
 
-        public class Client
+        public class Client : IHasLogs
         {
-            public Client(int id, TcpClient socket, Action<OnServerReceiveDataArgs> onDataReceive, Action<string> onLog = null)
+            public Client(int id, TcpClient socket, Action<OnServerReceiveDataArgs> onDataReceive)
             {
                 this.id = id;
 
@@ -175,7 +179,6 @@ namespace qASIC.Communication
                 buffer = new byte[Socket.ReceiveBufferSize];
 
                 OnDataReceive = onDataReceive;
-                OnLog = onLog;
             }
 
             public int id;
@@ -184,7 +187,7 @@ namespace qASIC.Communication
             public TcpClient Socket { get; private set; }
             public NetworkStream Stream { get; private set; }
 
-            public Action<string> OnLog;
+            public LogManager Logs { get; set; } = new LogManager();
             public event Action<OnServerReceiveDataArgs> OnDataReceive;
 
             private byte[] buffer;
@@ -201,7 +204,7 @@ namespace qASIC.Communication
                 Socket.Close();
 
                 IsActive = false;
-                OnLog?.Invoke($"Client id: {id} has been disconnected locally");
+                Logs.Log($"Client id: {id} has been disconnected locally");
             }
 
             private void HandleReceiveData(IAsyncResult result)
@@ -217,7 +220,7 @@ namespace qASIC.Communication
                     int byteLength = Stream.EndRead(result);
                     if (byteLength <= 0)
                     {
-                        OnLog?.Invoke($"Couldn't process data for client id '{id}'");
+                        Logs.LogError($"Couldn't process data for client id '{id}'");
                         return;
                     }
 
@@ -231,7 +234,7 @@ namespace qASIC.Communication
                 }
                 catch (Exception e)
                 {
-                    OnLog?.Invoke($"Unexpected error while processing data: {e}");
+                    Logs.LogError($"Unexpected error while processing data: {e}");
                 }
             }
         }

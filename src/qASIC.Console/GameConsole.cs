@@ -6,8 +6,8 @@ using qASIC.Console.Parsing.Arguments;
 using System;
 using System.Collections.Generic;
 using qASIC.Console.Commands.Prompts;
-using qASIC.Core.Interfaces;
 using System.Linq;
+using qASIC.Core;
 
 namespace qASIC.Console
 {
@@ -211,8 +211,6 @@ namespace qASIC.Console
         #endregion
 
         #region Registering Loggables
-        List<ILoggable> RegisteredLoggables { get; set; } = new List<ILoggable>();
-
         private bool _getLogsFromInstance = true;
         /// <summary>Whenever to log messages from <see cref="Instance"/>.</summary>
         public bool GetLogsFromInstance
@@ -237,33 +235,15 @@ namespace qASIC.Console
             }
         }
 
-        /// <summary>Registers to messages from an <see cref="ILoggable"/> and it's children.</summary>
+        /// <summary>Registers to messages from an <see cref="IHasLogs"/> and it's children.</summary>
         /// <param name="loggable">Loggable to register.</param>
-        public void RegisterLoggable(ILoggable loggable)
-        {
-            var loggables = loggable.GetAllLoggables()
-                .Except(RegisteredLoggables);
+        public void RegisterLoggable(IHasLogs loggable) =>
+            loggable.Logs.OnLog += a => Log(a);
 
-            foreach (var item in loggables)
-            {
-                item.Logs.OnLog += a => Log(a);
-                RegisteredLoggables.Add(item);
-            }
-        }
-
-        /// <summary>Deregisters from messages from an <see cref="ILoggable"/> and it's children.</summary>
+        /// <summary>Deregisters from messages from an <see cref="IHasLogs"/> and it's children.</summary>
         /// <param name="loggable">Loggable to deregister.</param>
-        public void DeregisterLoggable(ILoggable loggable)
-        {
-            var loggables = loggable.GetAllLoggables()
-                .Intersect(RegisteredLoggables);
-
-            foreach (var item in loggables)
-            {
-                item.Logs.OnLog -= a => Log(a);
-                RegisteredLoggables.Remove(item);
-            }
-        }
+        public void DeregisterLoggable(IHasLogs loggable) =>
+            loggable.Logs.OnLog -= a => Log(a);
         #endregion
 
         #region Logging

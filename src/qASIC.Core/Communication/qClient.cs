@@ -3,10 +3,11 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 using System;
 using qASIC.Communication.Components;
+using qASIC.Core;
 
 namespace qASIC.Communication
 {
-    public class qClient : IPeer
+    public class qClient : IPeer, IHasLogs
     {
         public qClient(CommsComponentCollection components, int maxConnectionAttempts = 5) : 
             this(components, IPAddress.Parse("127.0.0.1"), Constants.DEFAULT_PORT, maxConnectionAttempts)
@@ -61,7 +62,7 @@ namespace qASIC.Communication
         public NetworkStream Stream { get; private set; }
 
 
-        public Action<string> OnLog;
+        public LogManager Logs { get; set; } = new LogManager();
         public Action OnStart;
         public Action OnConnect;
         public Action<DisconnectReason> OnDisconnect;
@@ -90,7 +91,7 @@ namespace qASIC.Communication
                 }
                 catch (Exception e)
                 {
-                    OnLog?.Invoke($"[Error] There was a problem in update loop, {e}");
+                    Logs.LogError($"There was a problem in update loop, {e}");
                 }
             }
         }
@@ -107,7 +108,7 @@ namespace qASIC.Communication
             Port = port;
 
             OnStart?.Invoke();
-            OnLog?.Invoke("Starting client...");
+            Logs.Log("Starting client...");
 
             try
             {
@@ -126,13 +127,13 @@ namespace qASIC.Communication
                 IAsyncResult result = Socket.BeginConnect(Address, Port, null, null);
 
                 CurrentState = State.Connecting;
-                OnLog?.Invoke("Client is active, connecting...");
+                Logs.Log("Client is active, connecting...");
                 Heartbeat(result);
 
             }
             catch (Exception e)
             {
-                OnLog?.Invoke($"[Error] Failed to connect client: {e}");
+                Logs.LogError($"Failed to connect client: {e}");
                 Disconnect(DisconnectReason.Error);
             }
         }
@@ -156,24 +157,24 @@ namespace qASIC.Communication
                             Send(CC_ConnectData.CreateClientConfirmationPacket());
 
                             CurrentState = State.Pending;
-                            OnLog?.Invoke($"Connection established, waiting for connection confirmation");
+                            Logs.Log($"Connection established, waiting for connection confirmation");
                             break;
                         }
 
                         if (connectionAttempts >= maxConnectionAttempts)
                         {
-                            OnLog?.Invoke($"Couldn't establish connection");
+                            Logs.Log($"Couldn't establish connection");
                             DisconnectLocal(DisconnectReason.FailedToEstablishConnection);
                             return;
                         }
 
-                        OnLog?.Invoke($"Connection attempt: {connectionAttempts}");
+                        Logs.Log($"Connection attempt: {connectionAttempts}");
                         connectionAttempts++;
                         break;
                     case State.Pending:
                         if (connectionAttempts >= maxConnectionAttempts)
                         {
-                            OnLog?.Invoke($"Failed to receive connection confirmation.");
+                            Logs.Log($"Failed to receive connection confirmation.");
                             Disconnect(DisconnectReason.FailedToReceiveConnectionInformation);
                             return;
                         }
@@ -183,7 +184,7 @@ namespace qASIC.Communication
                     case State.Connected:
                         if (!receivedPing)
                         {
-                            OnLog?.Invoke($"Server didn't respond, disconnecting...");
+                            Logs.Log($"Server didn't respond, disconnecting...");
                             DisconnectLocal(DisconnectReason.NoResponse);
                             return;
                         }
@@ -195,7 +196,7 @@ namespace qASIC.Communication
             }
             catch (Exception e)
             {
-                OnLog?.Invoke($"[Error] Failed to execute update loop: {e}");
+                Logs.LogError($"Failed to execute update loop: {e}");
             }
 
             ExecuteLater(1000, () => Heartbeat(result));
@@ -209,7 +210,7 @@ namespace qASIC.Communication
             {
                 if (Stream?.CanRead != true)
                 {
-                    OnLog?.Invoke("[Error] Stream couldn't be read");
+                    Logs.LogError("Stream couldn't be read");
                     return;
                 }
 
@@ -217,7 +218,7 @@ namespace qASIC.Communication
 
                 if (length <= 0)
                 {
-                    OnLog?.Invoke("[Error] Stream is empty");
+                    Logs.LogError("Stream is empty");
                     return;
                 }
 
@@ -233,7 +234,7 @@ namespace qASIC.Communication
             }
             catch (Exception e)
             {
-                OnLog?.Invoke($"[Error] There was an error while processing data: {e}");
+                Logs.LogError($"There was an error while processing data: {e}");
             }
         }
 
@@ -242,7 +243,7 @@ namespace qASIC.Communication
             try
             {
                 if (logPacketSend)
-                    OnLog?.Invoke($"Sending to server - {packet}");
+                    Logs.Log($"Sending to server - {packet}");
 
                 if (Stream?.CanWrite != true)
                     return;
@@ -252,7 +253,7 @@ namespace qASIC.Communication
             }
             catch (Exception e)
             {
-                OnLog?.Invoke($"[Error] There was a problem while sending: {e}");
+                Logs.LogError($"There was a problem while sending: {e}");
             }
         }
 
@@ -274,12 +275,12 @@ namespace qASIC.Communication
                 eventQueue.Clear();
                 currentTime = 0;
 
-                OnLog?.Invoke("Client disconnected");
+                Logs.Log("Client disconnected");
                 OnDisconnect?.Invoke(reason);
             }
             catch (Exception e)
             {
-                OnLog?.Invoke($"[Error] There was a problem while disconnecting. Please restart application! {e}");
+                Logs.LogError($"There was a problem while disconnecting. Please restart application! {e}");
             }
         }
 

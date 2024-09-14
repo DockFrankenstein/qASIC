@@ -1,4 +1,5 @@
-﻿using System;
+﻿using qASIC.Core;
+using System;
 
 namespace qASIC
 {
@@ -15,6 +16,7 @@ namespace qASIC
         public string WarningColorTag { get; set; }
         public string ErrorColorTag { get; set; }
 
+        #region Logging
         public event Action<qLog> OnLog;
 
         public void Log(qLog log)
@@ -46,5 +48,26 @@ namespace qASIC
         {
             OnLog?.Invoke(qLog.CreateNow(message, ErrorColorTag));
         }
+        #endregion
+
+        #region Loggables
+        /// <summary>Subscribes to messages from a <see cref="IHasLogs"/>.</summary>
+        /// <param name="loggable">The loggable to register.</param>
+        /// <returns>Returns itself.</returns>
+        public LogManager RegisterLoggable(IHasLogs loggable)
+        {
+            loggable.Logs.OnLog += Log;
+            return this;
+        }
+
+        /// <summary>Unsubscribes from messages from a <see cref="IHasLogs"/>.</summary>
+        /// <param name="loggable">The loggable to deregister.</param>
+        /// <returns>Returns itself.</returns>
+        public LogManager UnregisterLoggable(IHasLogs loggable)
+        {
+            loggable.Logs.OnLog -= Log;
+            return this;
+        }
+        #endregion
     }
 }

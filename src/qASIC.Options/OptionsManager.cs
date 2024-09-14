@@ -1,11 +1,10 @@
-﻿using qASIC.Core.Interfaces;
+﻿using qASIC.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace qASIC.Options
 {
-    public class OptionsManager : ILoggable, IService
+    public class OptionsManager : IHasLogs, IService
     {
         public OptionsManager(OptionsSerializer serializer = null) :
             this(new OptionTargetList().FindOptions(), serializer: serializer)
@@ -65,7 +64,6 @@ namespace qASIC.Options
         }
 
         public LogManager Logs { get; set; } = new LogManager();
-        public IEnumerable<ILoggable> Loggables => Array.Empty<ILoggable>();
 
         public OptionsSerializer Serializer { get; set; }
 

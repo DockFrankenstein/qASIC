@@ -64,7 +64,7 @@ namespace qASIC.Communication.Components
 
             if (targetComp == null)
             {
-                server.OnLog?.Invoke($"Communication Component of id '{id}' does not exist");
+                server.Logs.LogError($"Communication Component of id '{id}' does not exist");
                 return;
             }
 
