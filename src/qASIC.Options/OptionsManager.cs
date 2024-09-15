@@ -33,7 +33,14 @@ namespace qASIC.Options
         private void List_OnChanged(OptionsList.ListItem[] items)
         {
             foreach (var item in items)
+            {
                 TargetList.Set(RegisteredObjects, item.Name, item.Value);
+                OnOptionChanged?.Invoke(new ChangeOptionArgs()
+                {
+                    optionName = item.Name,
+                    value = item.Value,
+                });
+            }
         }
 
         private void RegisteredObjects_OnObjectRegistered(object obj)
@@ -212,5 +219,22 @@ namespace qASIC.Options
             if (log)
                 Logs.Log($"Created options from target list.", "settings_ensure_targets");
         }
+
+        #region Callbacks
+        /// <summary>Called whenever an option gets changed.</summary>
+        public Action<ChangeOptionArgs> OnOptionChanged;
+
+        /// <summary>Register on changed callback for an option.</summary>
+        /// <param name="optionName">Name of the option.</param>
+        /// <param name="onChanged">Action to register.</param>
+        public void RegisterOnChangedCallback(string optionName, Action<ChangeOptionArgs> onChanged)
+        {
+            OnOptionChanged += (ChangeOptionArgs args) =>
+            {
+                if (FormatKeyString(optionName) == args.optionName)
+                    onChanged?.Invoke(args);
+            };
+        }
+        #endregion
     }
 }

@@ -174,6 +174,7 @@ namespace qASIC.Options
 
             var args = new ChangeOptionArgs()
             {
+                optionName = name,
                 value = value,
             };
 
@@ -216,6 +217,7 @@ namespace qASIC.Options
 
                 var args = new ChangeOptionArgs()
                 {
+                    optionName = val.Name,
                     value = val.Value,
                 };
 
