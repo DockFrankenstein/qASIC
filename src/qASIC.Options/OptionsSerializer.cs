@@ -1,8 +1,8 @@
 ﻿using System;
-using qASIC.Serialization.Serializers;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using qASIC.QML;
 
 namespace qASIC.Options
 {
@@ -16,14 +16,26 @@ namespace qASIC.Options
 
             OnSave = list =>
             {
-                var serializer = new ConfigSerializer();
-                return serializer.Serialize(list);
+                var serializer = new QmlSerializer();
+                var doc = new QmlDocument();
+
+                foreach (var item in list)
+                    doc.AddEntry(item.Key, item.Value?.ToString());
+
+                return serializer.Serialize(doc);
             };
 
             OnLoad = txt =>
             {
-                var serializer = new ConfigSerializer();
-                return serializer.Deserialize<Dictionary<string, object>>(txt);
+                var serializer = new QmlSerializer();
+                var doc = serializer.Deserialize(txt);
+
+                var dict = new Dictionary<string, object>();
+
+                foreach (var item in doc.Where(x => x is QmlEntry).Select(x => x as QmlEntry).GroupBy(x => x.Path))
+                    dict.Add(item.Key, item.First());
+
+                return dict;
             };
         }
 
