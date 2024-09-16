@@ -7,15 +7,15 @@ using qASIC.Core;
 
 namespace qASIC.Communication
 {
-    public class Server : IPeer, IHasLogs
+    public class qServer : IPeer, IHasLogs
     {
-        public Server(CommsComponentCollection components, int port)
+        public qServer(CommsComponentCollection components) : this(components, Constants.DEFAULT_PORT) { }
+
+        public qServer(CommsComponentCollection components, int port)
         {
             Components = components;
 
             Port = port;
-
-            Listener = new TcpListener(IPAddress.Loopback, Port);
         }
 
         public CommsComponentCollection Components { get; private set; }
@@ -40,8 +40,10 @@ namespace qASIC.Communication
             if (IsActive)
                 throw new Exception("Cannot start server, server is already active!");
 
-            Logs.Log("Starting server...");
+            Listener = new TcpListener(IPAddress.Any, Port);
             Listener.Start();
+            Port = ((IPEndPoint)Listener.LocalEndpoint).Port;
+            Logs.Log($"Starting server on port {Port}...");
             Listener.BeginAcceptTcpClient(new AsyncCallback(HandleClientConnect), null);
 
             nextClientId = 0;
@@ -152,7 +154,7 @@ namespace qASIC.Communication
             }
             catch (Exception e)
             {
-                Logs.LogError($"[Error] There was an error while sending data to client '{client.id}': {e}");
+                Logs.LogError($"There was an error while sending data to client '{client.id}': {e}");
             }
         }
 

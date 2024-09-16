@@ -2,6 +2,7 @@
 using qASIC.Communication.Components;
 using qASIC.CommComponents;
 using qASIC.Core;
+using qASIC.Communication.Discovery;
 
 namespace qASIC
 {
@@ -12,7 +13,8 @@ namespace qASIC
             RemoteInspectorComponents = CommsComponentCollection.GetStandardCollection()
                 .AddComponent(cc_log);
 
-            RemoteInspectorServer = new Server(RemoteInspectorComponents, Constants.DEFAULT_PORT);
+            RemoteInspectorServer = new qServer(RemoteInspectorComponents);
+            RemoteInspectorDiscoveryServer = new DiscoveryServer(RemoteInspectorServer);
             AppInfo = appInfo ?? new RemoteAppInfo();
 
             Services = new qServices(this);
@@ -47,12 +49,14 @@ namespace qASIC
         }
 
         public CommsComponentCollection RemoteInspectorComponents { get; private set; }
-        public Server RemoteInspectorServer { get; private set; }
+        public qServer RemoteInspectorServer { get; private set; }
+        public DiscoveryServer RemoteInspectorDiscoveryServer { get; private set; }
 
         public LogManager Logs { get; set; } = new LogManager();
 
         public bool forwardDebugLogs = true;
         public bool autoStartRemoteInspectorServer = true;
+        public bool useNetworkDiscovery = true;
 
         public readonly CC_Log cc_log = new CC_Log();
 
@@ -62,7 +66,12 @@ namespace qASIC
         public void Start()
         {
             if (autoStartRemoteInspectorServer)
+            {
                 RemoteInspectorServer.Start();
+
+                if (useNetworkDiscovery)
+                    RemoteInspectorDiscoveryServer.Start();
+            }
 
             qDebug.OnLog += QDebug_OnLog;
         }
@@ -78,6 +87,9 @@ namespace qASIC
         {
             if (RemoteInspectorServer.IsActive)
                 RemoteInspectorServer.Stop();
+
+            if (RemoteInspectorDiscoveryServer.IsActive)
+                RemoteInspectorDiscoveryServer.Stop();
         }
     }
 }

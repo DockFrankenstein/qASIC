@@ -1,14 +1,16 @@
-﻿namespace qASIC.Communication
+﻿using System.Diagnostics;
+
+namespace qASIC.Communication
 {
     public class OnServerReceiveDataArgs
     {
-        public OnServerReceiveDataArgs(Server.Client client, byte[] buffer)
+        public OnServerReceiveDataArgs(qServer.Client client, byte[] buffer)
         {
             this.client = client;
             data = buffer;
         }
 
-        public Server.Client client;
+        public qServer.Client client;
         public byte[] data;
     }
 
@@ -23,20 +25,23 @@
         public PacketType packetType;
         public qPacket packet;
         public qClient client;
-        public Server server;
+        public qServer server;
 
-        public Server.Client targetServerClient;
+        public qServer.Client targetServerClient;
 
-        public void Log(string message)
+        public LogManager Logs
         {
-            switch (packetType)
+            get
             {
-                case PacketType.Server:
-                    server!.Logs.Log(message);
-                    break;
-                case PacketType.Client:
-                    client!.Logs.Log(message);
-                    break;
+                switch (packetType)
+                {
+                    case PacketType.Server:
+                        return server.Logs;
+                    case PacketType.Client:
+                        return client.Logs;
+                    default:
+                        return null;
+                }
             }
         }
     }

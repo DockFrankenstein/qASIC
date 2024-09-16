@@ -30,7 +30,7 @@ namespace qASIC.Console.Commands
 
         /// <summary>Adds all built-in commands to the list.</summary>
         /// <returns>Returns itself.</returns>
-        public GameCommandList AddBuildInCommands() =>
+        public GameCommandList AddBuiltInCommands() =>
             AddCommandRage(new IGameCommand[]
             {
                 new BuiltIn.Clear(),

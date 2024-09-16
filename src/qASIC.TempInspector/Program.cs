@@ -2,6 +2,11 @@
 using qASIC;
 using qASIC.Console;
 using qASIC.Console.Commands.Prompts;
+using qASIC.Communication.Discovery;
+using System.Text;
+using System.Net;
+using qASIC.Console.Commands.Attributes;
+using qASIC.Console.Commands;
 
 namespace qASICRemote
 {
@@ -36,8 +41,9 @@ namespace qASICRemote
                 autoStartRemoteInspectorServer = false,
             };
 
-            var commands = new qASIC.Console.Commands.GameCommandList()
-                .AddBuildInCommands()
+            var commands = new GameCommandList()
+                .AddBuiltInCommands()
+                .AddCommand(new ConnectionsListCommand(this))
                 .FindAttributeCommands<InspectorCommand>();
 
             GConsole = new GameConsole(QasicInstance, "MAIN", commands);
@@ -58,7 +64,19 @@ namespace qASICRemote
             client.OnDisconnect += Client_OnDisconnect;
             client.OnConnect += Client_OnConnect;
             client.OnStart += Client_OnStart;
-            client.Logs.OnLog += a => GConsole.Log($"[Client] {a}", new qColor(179, 255, 254));
+            client.Logs.OnLog += a => GConsole.Log($"[Client] {a.message}", new qColor(179, 255, 254));
+
+            DiscoveryClient = new DiscoveryClient(52148);
+            DiscoveryClient.OnDiscover += args =>
+            {
+                GConsole.Log($"Server discovered, address: {args.Address}:{args.Port}, identity: {args.Identity.ReadNetworkSerializable<RemoteAppInfo>()}");
+                args.Identity.ResetPosition();
+            };
+            DiscoveryClient.OnRemoved += args =>
+            {
+                GConsole.Log($"Server removed, address: {args.Address}:{args.Port}, identity: {args.Identity.ReadNetworkSerializable<RemoteAppInfo>()}");
+                args.Identity.ResetPosition();
+            };
 
             consoleManager = new InstanceConsoleManager(client);
             consoleManager.CC_Log.OnRead += CC_Log_OnRead;
@@ -72,6 +90,7 @@ namespace qASICRemote
         public qInstance QasicInstance { get; private set; } = null;
         public GameConsole GConsole { get; private set; } = null;
         public SystemConsoleUI Interface { get; private set; } = null;
+        public DiscoveryClient DiscoveryClient { get; private set; } = null;
 
         public InstanceConsoleManager consoleManager;
 
@@ -83,6 +102,7 @@ namespace qASICRemote
         public void Run(string[] args)
         {
             QasicInstance.Start();
+            DiscoveryClient.Start();
 
             new Task(async () =>
             {
@@ -163,29 +183,27 @@ namespace qASICRemote
 
         [InspectorCommand("connect", "cn", Description = "Connects to an application.")]
         private void Connect() =>
-            Connect(false);
-
-        [InspectorCommand("connect")]
-        private void Connect(bool autoconnect) =>
-            Connect(client?.Port ?? Constants.DEFAULT_PORT, autoconnect);
+            Connect("127.0.0.1");
 
         [InspectorCommand("connect")]
         private void Connect(int port) =>
-            Connect(port, false);
+            Connect($"127.0.0.1:{port}");
 
         [InspectorCommand("connect")]
-        private void Connect(int port, bool autoconnect)
+        private void Connect(string address)
         {
-            AutoConnect = autoconnect;
-            GConsole?.Log($"Auto connect: {autoconnect}");
+            var addressParts = address.Split(":");
+
+            int port = client.Port;
+            if (addressParts.Length > 2 ||
+                !IPAddress.TryParse(addressParts[0], out IPAddress finalAddress) ||
+                (addressParts.Length == 2 && !int.TryParse(addressParts[1], out port)))
+                throw new GameCommandException($"Could not parse address '{address}'");
 
             if (client!.IsActive)
-            {
-                GConsole?.LogError("Client is already active, this application doesn't support multiple client instances!");
-                return;
-            }
+                throw new GameCommandException("Client is already active, this application doesn't support multiple client instances!");
 
-            client.Connect(client.Address, port);
+            client.Connect(finalAddress, port);
         }
 
         [InspectorCommand("listconsoles", "lc", Description = "Lists all registered consoles.")]
@@ -275,6 +293,84 @@ namespace qASICRemote
         private void OnApplicationClose(object sender, EventArgs e)
         {
             client?.Disconnect();
+            DiscoveryClient?.Stop();
+        }
+
+        class ConnectionsListCommand : GameCommand
+        {
+            public ConnectionsListCommand(Inspector inspector)
+            {
+                Inspector = inspector;
+            }
+
+            public override string CommandName => "connectionslist";
+            public override string[] Aliases => new string[] { "cl" };
+
+            public override string Description => "Shows a list of discovered connections and allows to connect to them.";
+
+            Inspector Inspector { get; set; }
+
+            qLog log;
+            int index;
+
+            KeyPrompt navigationPrompt = new KeyPrompt();
+
+            public override object Run(CommandArgs args)
+            {
+                if (log == null || args.console.ReturnedValue == null)
+                {
+                    log = qLog.CreateNow("");
+                    index = 0;
+                }
+
+                StringBuilder logTxt = new StringBuilder("Navigate with arrows, left arrow to exit");
+                bool final = false;
+
+                if (args.console.ReturnedValue == navigationPrompt)
+                {
+                    switch (navigationPrompt.Key)
+                    {
+                        case KeyPrompt.NavigationKey.Cancel:
+                        case KeyPrompt.NavigationKey.Left:
+                            final = true;
+                            break;
+                        case KeyPrompt.NavigationKey.Up:
+                            index = Math.Clamp(index - 1, 0, Inspector.DiscoveryClient.Discovered.Count - 1);
+                            break;
+                        case KeyPrompt.NavigationKey.Down:
+                            index = Math.Clamp(index + 1, 0, Inspector.DiscoveryClient.Discovered.Count - 1);
+                            break;
+                        case KeyPrompt.NavigationKey.Right:
+                        case KeyPrompt.NavigationKey.Confirm:
+                            var targetConn = Inspector.DiscoveryClient.Discovered[index];
+                            Inspector.client.Connect(targetConn.Address, targetConn.Port);
+                            final = true;
+                            break;
+                    }
+                }
+
+                for (int i = 0; i < Inspector.DiscoveryClient.Discovered.Count; i++)
+                {
+                    logTxt.Append("\n");
+                    logTxt.Append(index == i ? (final ? "]" : ">") : " ");
+                    logTxt.Append(" ");
+                    var conn = Inspector.DiscoveryClient.Discovered[i];
+                    var info = conn.Identity.ReadNetworkSerializable<RemoteAppInfo>();
+                    conn.Identity.ResetPosition();
+
+                    logTxt.Append($" {conn.Address}:{conn.Port} - {(string.IsNullOrWhiteSpace(info.projectName) ? "UNKNOWN" : info.projectName)}");
+
+                    if (!string.IsNullOrWhiteSpace(info.version))
+                        logTxt.Append($" v{info.version}");
+                }
+
+                log.message = logTxt.ToString();
+
+                args.console.Log(log);
+                return final ? 
+                    null : 
+                    navigationPrompt;
+            }
         }
     }
 }

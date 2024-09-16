@@ -127,7 +127,7 @@ namespace qASIC.Communication
                 IAsyncResult result = Socket.BeginConnect(Address, Port, null, null);
 
                 CurrentState = State.Connecting;
-                Logs.Log("Client is active, connecting...");
+                Logs.Log($"Client is active, connecting to {Address}:{Port}...");
                 Heartbeat(result);
 
             }

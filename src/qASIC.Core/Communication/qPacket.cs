@@ -9,7 +9,7 @@ namespace qASIC.Communication
     {
         public qPacket() : this(new byte[0]) { }
 
-        public qPacket(byte[] bytes)
+        public qPacket(IEnumerable<byte> bytes)
         {
             this.bytes = new List<byte>(bytes);
         }
@@ -42,6 +42,17 @@ namespace qASIC.Communication
                 b = bytes.First();
 
             return unchecked((sbyte)b);
+        }
+
+        public void ResetPosition() =>
+            position = 0;
+
+        public void RemoveReadBytes()
+        {
+            for (int i = 0; i < position; i++)
+                bytes.RemoveAt(0);
+
+            ResetPosition();
         }
 
         public int ReadInt() => BitConverter.ToInt32(ReadCurrentBytes(sizeof(int)), 0);

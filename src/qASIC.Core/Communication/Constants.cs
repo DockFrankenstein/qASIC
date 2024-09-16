@@ -7,6 +7,7 @@
 
         public const uint PROTOCOL_VERSION = 0;
 
-        public const int DEFAULT_PORT = 8174;
+        public const int DEFAULT_PORT = 0;
+        public const int DEFAULT_DISCOVERY_PORT = 52148;
     }
 }

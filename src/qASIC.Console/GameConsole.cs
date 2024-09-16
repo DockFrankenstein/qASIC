@@ -31,7 +31,7 @@ namespace qASIC.Console
 
             Name = name;
             CommandList = commandList ?? new GameCommandList()
-                .AddBuildInCommands()
+                .AddBuiltInCommands()
                 .FindCommands()
                 .FindAttributeCommands();
 

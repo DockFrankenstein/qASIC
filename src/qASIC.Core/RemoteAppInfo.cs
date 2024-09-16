@@ -57,6 +57,9 @@ namespace qASIC
             }
         }
 
+        public override string ToString() =>
+            $"Remote App Info, '{projectName}' v{version} made with {engine} v{engineVersion} using protocol version {protocolVersion}";
+
         public struct SystemInfo
         {
             public SystemInfo(string name, string version)

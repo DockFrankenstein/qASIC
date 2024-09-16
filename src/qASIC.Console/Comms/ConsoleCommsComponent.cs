@@ -13,7 +13,7 @@ namespace qASIC.Console.Comms
             var console = ConsoleManager?.Get(consoleName)?.Console;
             if (console == null)
             {
-                args.Log("[Error] Console not registered");
+                args.Logs.LogError("Console not registered");
                 return;
             }
 

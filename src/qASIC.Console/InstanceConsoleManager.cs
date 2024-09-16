@@ -12,7 +12,7 @@ namespace qASIC.Console
     public class InstanceConsoleManager : IEnumerable<RegisteredConsole>, IEnumerable
     {
         public InstanceConsoleManager(qClient client) : this(client as IPeer) { }
-        public InstanceConsoleManager(Server server) : this(server as IPeer) { }
+        public InstanceConsoleManager(qServer server) : this(server as IPeer) { }
         public InstanceConsoleManager(IPeer peer)
         {
             Peer = peer;
@@ -22,9 +22,9 @@ namespace qASIC.Console
                 .AddComponent(new CC_ConsoleRegister() { ConsoleManager = this })
                 .AddComponent(new CC_ConsoleDeregister() { ConsoleManager = this });
 
-            if (Peer is Server server)
+            if (Peer is qServer server)
             {
-                server.OnClientConnect += (Server.Client client) =>
+                server.OnClientConnect += (qServer.Client client) =>
                 {
                     foreach (var item in RegisteredConsoles)
                     {
@@ -60,7 +60,7 @@ namespace qASIC.Console
             console.OnLog += (log) => Console_OnLog(console, log);
             console.OnUpdateLog += (log) => Console_OnUpdateLog(console, log);
 
-            if (Peer is Server server)
+            if (Peer is qServer server)
                 server.SendToAll(CC_ConsoleRegister.CreatePacket(console));
 
             OnConsoleRegister?.Invoke(console);
@@ -76,7 +76,7 @@ namespace qASIC.Console
             console.OnLog -= (log) => Console_OnLog(console, log);
             console.OnUpdateLog -= (log) => Console_OnUpdateLog(console, log);
 
-            if (Peer is Server server)
+            if (Peer is qServer server)
                 server.SendToAll(new CC_ConsoleDeregister().CreateEmptyPacketForConsole(console));
         }
 
@@ -93,13 +93,13 @@ namespace qASIC.Console
 
         private void Console_OnLog(GameConsole console, qLog log)
         {
-            if (Peer is Server server)
+            if (Peer is qServer server)
                 server.SendToAll(CC_ConsoleLog.BuildPacket(console, log, false));
         }
 
         private void Console_OnUpdateLog(GameConsole console, qLog log)
         {
-            if (Peer is Server server)
+            if (Peer is qServer server)
                 server.SendToAll(CC_ConsoleLog.BuildPacket(console, log, true));
         }
 
