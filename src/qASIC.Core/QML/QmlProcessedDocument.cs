@@ -14,8 +14,6 @@ namespace qASIC.QML
         public string[] Lines { get; set; }
         public int Position { get; set; }
 
-        public string PathPrefix { get; set; }
-
         public bool FinishedReading =>
             Position >= Lines.Length;
 

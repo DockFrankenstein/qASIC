@@ -10,28 +10,30 @@
 
         public string Path { get; set; }
 
+        public bool IsEnding =>
+            string.IsNullOrWhiteSpace(Path);
+
         public override string CreateContent() =>
-            string.IsNullOrWhiteSpace(Path) ?
+            IsEnding ?
             "---\n" :
             $"--- {Path} ---\n";
 
-        public override bool ShouldParse(QmlProcessedDocument doc) =>
-            doc.PeekLine().StartsWith('-');
+        public override bool ShouldParse(QmlProcessedDocument processed, QmlDocument doc) =>
+            processed.PeekLine().StartsWith('-');
 
-        public override QmlElement Parse(QmlProcessedDocument doc)
+        public override void Parse(QmlProcessedDocument processed, QmlDocument doc)
         {
-            var line = doc.GetLine()
+            var line = processed.GetLine()
                 .Trim('-')
                 .Trim();
 
             if (string.IsNullOrEmpty(line))
             {
-                doc.PathPrefix = string.Empty;
-                return new QmlGroupBorder();
+                doc.AddElement(new QmlGroupBorder());
+                return;
             }
 
-            doc.PathPrefix = $"{line}.";
-            return new QmlGroupBorder(line);
+            doc.AddElement(new QmlGroupBorder(line));
         }
     }
 }

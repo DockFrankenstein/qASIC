@@ -1,7 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace qASIC.QML
 {
@@ -27,6 +30,9 @@ namespace qASIC.QML
             set => this.value = QmlUtility.FormatString(value);
         }
 
+        public bool IsArrayItem { get; set; }
+        public bool IsArrayStart { get; set; }
+
         public T GetValue<T>() =>
             (T)GetValue(typeof(T));
 
@@ -42,20 +48,77 @@ namespace qASIC.QML
             }
         }
 
-        public override string CreateContent() =>
-            $"{Path}: {QmlUtility.PrepareValueStringForExport(Value)}\n";
-
-        public override bool ShouldParse(QmlProcessedDocument doc) =>
-            doc.PeekLine().Contains(":");
-
-        public override QmlElement Parse(QmlProcessedDocument doc)
+        public override string CreateContent()
         {
-            var mainLineParts = doc.GetLine().Split(":");
-            var path = mainLineParts[0];
-            var relativePath = $"{doc.PathPrefix}{path}";
-            var txt = string.Join(":", mainLineParts.Skip(1))
-                .Trim();
+            if (IsArrayStart)
+                return $"{RelativePath}|\n";
 
+            if (IsArrayItem)
+                return $"* {QmlUtility.PrepareValueStringForExport(Value)}\n";
+
+            return $"{RelativePath}: {QmlUtility.PrepareValueStringForExport(Value)}\n";
+        }
+
+        public override bool ShouldParse(QmlProcessedDocument processed, QmlDocument doc)
+        {
+            var line = processed.PeekLine();
+            return line.Contains(':') || line.TrimEnd().EndsWith('|') || line.TrimStart().StartsWith('*');
+        }
+
+        public override void Parse(QmlProcessedDocument processed, QmlDocument doc)
+        {
+            var line = processed.GetLine();
+
+            bool isArrayStart = line.TrimEnd().EndsWith('|');
+            bool isArrayItem = line.TrimStart().StartsWith('*');
+
+            var relativePath = string.Empty;
+            var txt = string.Empty;
+            var group = doc.GetLastElementOfType<QmlGroupBorder>();
+
+            if (isArrayStart)
+            {
+                relativePath = line.TrimEnd();
+                relativePath = relativePath.Substring(0, relativePath.Length - 1);
+            }
+
+            if (!isArrayStart && isArrayItem)
+            {
+                var item = doc.Where(x => x is QmlEntry e && !e.IsArrayItem)
+                    .LastOrDefault() as QmlEntry;
+
+                //If there is no array start or any entry before, ignore
+                if (item == null)
+                    return;
+
+                relativePath = item.RelativePath;
+                txt = line.TrimStart();
+                txt = txt.Substring(1, txt.Length - 1)
+                    .Trim();
+            }
+
+            if (!isArrayStart && !isArrayItem)
+            {
+                var mainLineParts = line.Split(":");
+                relativePath = mainLineParts[0];
+                txt = string.Join(":", mainLineParts.Skip(1))
+                    .Trim();
+            }
+
+            var path = relativePath;
+
+            if (group != null && !group.IsEnding)
+                path = $"{group.Path}.{relativePath}";
+
+            doc.AddElement(new QmlEntry(path, relativePath, isArrayStart ? string.Empty : GetValue(processed, txt))
+            {
+                IsArrayStart = isArrayStart,
+                IsArrayItem = isArrayItem,
+            });
+        }
+
+        string GetValue(QmlProcessedDocument processed, string txt)
+        {
             var quoteCount = 0;
             while (quoteCount < txt.Length && txt[quoteCount] == '\"')
                 quoteCount++;
@@ -64,9 +127,10 @@ namespace qASIC.QML
             //we can just skip the rest and replace double quotations
             //with single ones
             if (quoteCount % 2 == 0)
-                return new QmlEntry(path, relativePath, txt.Replace("\"\"", "\""));
+                return txt.Replace("\"\"", "\"");
 
             txt = txt.Substring(1, txt.Length - 1);
+
             var value = new StringBuilder();
             while (true)
             {
@@ -116,15 +180,15 @@ namespace qASIC.QML
                 if (emptyCount == 1)
                     break;
 
-                if (doc.FinishedReading)
+                if (processed.FinishedReading)
                     break;
 
                 //Move to the next line
                 value.Append('\n');
-                txt = doc.GetLine();
+                txt = processed.GetLine();
             }
 
-            return new QmlEntry(path, relativePath, value.ToString());
+            return value.ToString();
         }
     }
 }

@@ -19,19 +19,19 @@ namespace qASIC.QML
         public override string CreateContent() =>
             new string('\n', Count);
 
-        public override bool ShouldParse(QmlProcessedDocument doc) =>
-            string.IsNullOrWhiteSpace(doc.PeekLine());
+        public override bool ShouldParse(QmlProcessedDocument processed, QmlDocument doc) =>
+            string.IsNullOrWhiteSpace(processed.PeekLine());
 
-        public override QmlElement Parse(QmlProcessedDocument doc)
+        public override void Parse(QmlProcessedDocument processed, QmlDocument doc)
         {
             int i = 0;
-            while (!doc.FinishedReading && string.IsNullOrWhiteSpace(doc.PeekLine()))
+            while (!processed.FinishedReading && string.IsNullOrWhiteSpace(processed.PeekLine()))
             {
                 i++;
-                doc.GetLine();
+                processed.GetLine();
             }
 
-            return new QmlSpace(i);
+            doc.AddElement(new QmlSpace(i));
         }
     }
 }

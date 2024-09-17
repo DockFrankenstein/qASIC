@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace qASIC.QML
 {
@@ -30,29 +29,25 @@ namespace qASIC.QML
 
         public QmlDocument Deserialize(string txt)
         {
-            var doc = new QmlProcessedDocument(txt);
+            var processed = new QmlProcessedDocument(txt);
+            var doc = new QmlDocument();
 
-            var elements = new List<QmlElement>();
-
-            while (!doc.FinishedReading)
+            while (!processed.FinishedReading)
             {
                 bool parsed = false;
                 foreach (var item in DeserializeElements)
                 {
-                    if (!item.ShouldParse(doc)) continue;
-                    var el = item.Parse(doc);
-                    if (el != null)
-                        elements.Add(el);
-
+                    if (!item.ShouldParse(processed, doc)) continue;
+                    item.Parse(processed, doc);
                     parsed = true;
                     break;
                 }
 
                 if (!parsed)
-                    doc.GetLine();
+                    processed.GetLine();
             }
 
-            return new QmlDocument(elements);
+            return doc;
         }
     }
 }

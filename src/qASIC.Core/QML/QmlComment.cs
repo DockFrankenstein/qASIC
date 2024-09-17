@@ -21,22 +21,22 @@ namespace qASIC.QML
         public override string CreateContent() =>
             $"# {Comment.Replace("\n", "\n# ")}\n";
 
-        public override bool ShouldParse(QmlProcessedDocument doc) =>
-            doc.PeekLine().Trim().StartsWith("#");
+        public override bool ShouldParse(QmlProcessedDocument processed, QmlDocument doc) =>
+            processed.PeekLine().Trim().StartsWith("#");
 
-        public override QmlElement Parse(QmlProcessedDocument doc)
+        public override void Parse(QmlProcessedDocument processed, QmlDocument doc)
         {
             var comment = new StringBuilder();
-            while (doc.PeekLine().TrimStart().StartsWith("#"))
+            while (processed.PeekLine().TrimStart().StartsWith("#"))
             {
-                var line = doc.GetLine().TrimStart();
+                var line = processed.GetLine().TrimStart();
                 var trimCount = Math.Min(2, line.Length);
                 line = line.Substring(trimCount, line.Length - trimCount);
                 comment.Append($"\n{line}");
             }
 
             var txt = comment.ToString();
-            return new QmlComment(txt.Substring(1, txt.Length - 1));
+            doc.AddElement(new QmlComment(txt.Substring(1, txt.Length - 1)));
         }
     }
 }

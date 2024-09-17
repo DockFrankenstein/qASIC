@@ -14,19 +14,24 @@ namespace qASIC.QML
                 .Where(x => x is QmlEntry)
                 .Select(x => x as QmlEntry)
                 .GroupBy(x => x.Path)
-                .ToDictionary(x => x.Key, x => x.First());
+                .ToDictionary(x => x.Key, x => x.ToList());
         }
 
         public string PathPrefix { get; private set; }
         List<QmlElement> Elements { get; set; } = new List<QmlElement>();
-        Dictionary<string, QmlEntry> EntryMap { get; set; } = new Dictionary<string, QmlEntry>(); 
+        Dictionary<string, List<QmlEntry>> EntryMap { get; set; } = new Dictionary<string, List<QmlEntry>>(); 
 
         #region Adding
         public QmlDocument AddElement(QmlElement element)
         {
             Elements.Add(element);
-            if (element is QmlEntry entry && !EntryMap.ContainsKey(entry.Path))
-                EntryMap.Add(entry.Path, entry);
+            if (element is QmlEntry entry)
+            {
+                if (!EntryMap.ContainsKey(entry.Path))
+                    EntryMap.Add(entry.Path, new List<QmlEntry>());
+
+                EntryMap[entry.Path].Add(entry);
+            }
 
             return this;
         }
@@ -34,7 +39,22 @@ namespace qASIC.QML
         public QmlDocument AddEntry(string path, string value) =>
             AddElement(new QmlEntry($"{PathPrefix}{path}", path, value));
 
-        public QmlDocument AddGroup(string groupPath)
+        public QmlDocument StartArrayEntry(string path) =>
+            AddElement(new QmlEntry($"{PathPrefix}{path}", path, string.Empty)
+            {
+                IsArrayStart = true
+            });
+
+        public QmlDocument AddArrayItem(string value)
+        {
+            var prevEntry = GetLastElementOfType<QmlEntry>();
+            return AddElement(new QmlEntry(prevEntry?.Path ?? string.Empty, prevEntry?.RelativePath ?? string.Empty, value)
+            {
+                IsArrayItem = true,
+            });
+        }
+
+        public QmlDocument StartGroup(string groupPath)
         {
             PathPrefix = string.IsNullOrWhiteSpace(groupPath) ?
                 string.Empty :
@@ -44,7 +64,7 @@ namespace qASIC.QML
         }
 
         public QmlDocument FinishGroup() =>
-            AddGroup(string.Empty);
+            StartGroup(string.Empty);
 
         public QmlDocument AddComment(string comment) =>
             AddElement(new QmlComment(comment));
@@ -56,8 +76,24 @@ namespace qASIC.QML
         #region Getting
         public QmlEntry GetEntry(string path) =>
             EntryMap.TryGetValue(path, out var val) ?
-            val :
+            val.Where(x => !x.IsArrayStart).FirstOrDefault() :
             null;
+
+        public QmlEntry[] GetEntries(string path) =>
+            EntryMap.TryGetValue(path, out var val) ?
+            val.Where(x => !x.IsArrayStart).ToArray() :
+            new QmlEntry[0];
+        
+        public T GetLastElementOfType<T>() where T : QmlElement
+        {
+            for (int i = Elements.Count - 1; i >= 0; i--)
+            {
+                if (Elements[i] is T el)
+                    return el;
+            }
+
+            return null;
+        }
         #endregion
 
         public IEnumerator<QmlElement> GetEnumerator() =>
