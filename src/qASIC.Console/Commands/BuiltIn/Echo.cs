@@ -6,7 +6,7 @@
         public override string Description => "Echos a message.";
         public override string[] Aliases => new string[] { "print" };
 
-        public override object Run(CommandArgs args)
+        public override object Run(GameCommandArgs args)
         {
             args.CheckArgumentCount(1);
             Logs.Log(args[1].arg);

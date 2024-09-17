@@ -12,7 +12,7 @@ namespace qASIC.Console.Commands.BuiltIn
         public bool AllowDetailedDescription { get; set; } = true;
         public int PageCommandLimit { get; set; } = 16;
 
-        public override object Run(CommandArgs args)
+        public override object Run(GameCommandArgs args)
         {
             //Ignore page argument if multipage and detailed description is off
             if (!MultiplePages)
@@ -40,7 +40,7 @@ namespace qASIC.Console.Commands.BuiltIn
             var commandList = args.console.CommandList!;
             if (targetCommand != null)
             {
-                if (!commandList.TryGetCommand(targetCommand, out IGameCommand command) || command == null)
+                if (!commandList.TryGetCommand(targetCommand, out ICommand command) || command == null)
                     throw new GameCommandException($"Command '{targetCommand}' does not exist!");
 
                 if (command.DetailedDescription == null && command.Description == null)

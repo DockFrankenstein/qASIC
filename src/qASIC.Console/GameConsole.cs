@@ -92,7 +92,7 @@ namespace qASIC.Console
         public GameCommandList CommandList { get; set; }
         public ArgumentsParser CommandParser { get; set; }
 
-        public IGameCommand CurrentCommand { get; private set; } = null;
+        public ICommand CurrentCommand { get; private set; } = null;
         public object ReturnedValue { get; private set; } = null;
 
         public GameConsoleTheme Theme { get; set; } = GameConsoleTheme.Default;
@@ -140,7 +140,7 @@ namespace qASIC.Console
                 args = CommandParser.ParseString(cmd);
             }
 
-            var commandArgs = new CommandArgs()
+            var commandArgs = new GameCommandArgs()
             {
                 inputString = cmd,
                 commandName = CurrentCommand?.CommandName ?? (args.Length == 0 ? null : args[0].arg),
@@ -153,7 +153,7 @@ namespace qASIC.Console
 
         /// <summary>Executes a command.</summary>
         /// <param name="args">Command arguments.</param>
-        public object Execute(CommandArgs args)
+        public object Execute(GameCommandArgs args)
         {
             //Before
             if (CurrentCommand == null)
@@ -161,7 +161,7 @@ namespace qASIC.Console
                 if (CommandList == null)
                     throw new Exception("Cannot execute commands with no command list!");
 
-                if (!CommandList.TryGetCommand(args.commandName, out IGameCommand command))
+                if (!CommandList.TryGetCommand(args.commandName, out var command))
                 {
                     LogError($"Command {args.commandName} doesn't exist");
                     return null;

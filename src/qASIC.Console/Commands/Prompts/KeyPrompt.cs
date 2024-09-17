@@ -29,10 +29,10 @@ namespace qASIC.Console.Commands.Prompts
 
         public NavigationKey Key { get; private set; } = NavigationKey.None;
 
-        public override bool CanExecute(CommandArgs args) =>
+        public override bool CanExecute(GameCommandArgs args) =>
             args.inputString.Length > 0;
 
-        public override ConsoleArgument[] Prepare(CommandArgs args)
+        public override ConsoleArgument[] Prepare(GameCommandArgs args)
         {
             string s = args.inputString.First().ToString();
 

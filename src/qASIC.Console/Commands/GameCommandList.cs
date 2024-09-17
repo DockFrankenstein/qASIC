@@ -6,22 +6,22 @@ using System.Linq;
 
 namespace qASIC.Console.Commands
 {
-    public class GameCommandList : IEnumerable<IGameCommand>
+    public class GameCommandList : IEnumerable<ICommand>
     {
         private List<RegisteredCommand> Commands { get; set; } = new List<RegisteredCommand>();
 
-        public Action<IEnumerable<IGameCommand>> OnCommandsAdded;
+        public Action<IEnumerable<ICommand>> OnCommandsAdded;
 
         /// <summary>Adds command to the list.</summary>
         /// <param name="command">Command to add.</param>
         /// <returns>Returns itself.</returns>
-        public GameCommandList AddCommand(IGameCommand command) =>
-            AddCommandRage(new IGameCommand[] { command });
+        public GameCommandList AddCommand(ICommand command) =>
+            AddCommandRage(new ICommand[] { command });
 
         /// <summary>Adds commands to the list.</summary>
         /// <param name="command">Collection of commands to add.</param>
         /// <returns>Returns itself.</returns>
-        public GameCommandList AddCommandRage(IEnumerable<IGameCommand> commands)
+        public GameCommandList AddCommandRage(IEnumerable<ICommand> commands)
         {
             Commands.AddRange(commands.Select(x => new RegisteredCommand(x)));
             OnCommandsAdded?.Invoke(commands);
@@ -31,7 +31,7 @@ namespace qASIC.Console.Commands
         /// <summary>Adds all built-in commands to the list.</summary>
         /// <returns>Returns itself.</returns>
         public GameCommandList AddBuiltInCommands() =>
-            AddCommandRage(new IGameCommand[]
+            AddCommandRage(new ICommand[]
             {
                 new BuiltIn.Clear(),
                 new BuiltIn.Echo(),
@@ -58,9 +58,9 @@ namespace qASIC.Console.Commands
         public GameCommandList FindCommands(Type type)
         {
             var commandTypes = TypeFinder.FindClassesWithAttribute(type, BindingFlags.Public | BindingFlags.NonPublic)
-                .Where(x => typeof(IGameCommand).IsAssignableFrom(x));
+                .Where(x => typeof(ICommand).IsAssignableFrom(x));
 
-            var commands = TypeFinder.CreateConstructorsFromTypes<IGameCommand>(commandTypes)
+            var commands = TypeFinder.CreateConstructorsFromTypes<ICommand>(commandTypes)
                 .Where(x => x != null);
 
             AddCommandRage(commands);
@@ -97,7 +97,7 @@ namespace qASIC.Console.Commands
                 .Concat(fields)
                 .Concat(properties);
 
-            var addedCommands = new List<IGameCommand>();
+            var addedCommands = new List<ICommand>();
             foreach (var member in targets)
             {
                 var attr = (CommandAttribute)member.GetCustomAttribute(type);
@@ -135,7 +135,7 @@ namespace qASIC.Console.Commands
         /// <param name="commandName">Name of the command, doesn't need to be lowercase.</param>
         /// <param name="command">Found command.</param>
         /// <returns>Returns if it found a command.</returns>
-        public bool TryGetCommand(string commandName, out IGameCommand command)
+        public bool TryGetCommand(string commandName, out ICommand command)
         {
             commandName = commandName?.ToLower();
 
@@ -147,7 +147,7 @@ namespace qASIC.Console.Commands
             return command != null;
         }
 
-        public IEnumerator<IGameCommand> GetEnumerator() =>
+        public IEnumerator<ICommand> GetEnumerator() =>
             Commands
             .Select(x => x.command)
             .GetEnumerator();
@@ -155,7 +155,7 @@ namespace qASIC.Console.Commands
         IEnumerator IEnumerable.GetEnumerator() =>
             GetEnumerator();
 
-        public IGameCommand this[int index]
+        public ICommand this[int index]
         {
             get => Commands[index].command;
         }
@@ -165,7 +165,7 @@ namespace qASIC.Console.Commands
 
         class RegisteredCommand
         {
-            public RegisteredCommand(IGameCommand command)
+            public RegisteredCommand(ICommand command)
             {
                 this.command = command;
 
@@ -176,7 +176,7 @@ namespace qASIC.Console.Commands
             }
 
             public string[] names;
-            public IGameCommand command;
+            public ICommand command;
         }
     }
 }

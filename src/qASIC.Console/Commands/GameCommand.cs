@@ -2,7 +2,7 @@
 
 namespace qASIC.Console.Commands
 {
-    public abstract class GameCommand : IGameCommand, IHasLogs
+    public abstract class GameCommand : ICommand, IHasLogs
     {
         public abstract string CommandName { get; }
 
@@ -14,6 +14,9 @@ namespace qASIC.Console.Commands
 
         public LogManager Logs { get; set; } = new LogManager();
 
-        public abstract object Run(CommandArgs args);
+        public object Run(CommandArgs args) =>
+            Run(args as GameCommandArgs);
+
+        public abstract object Run(GameCommandArgs args);
     }
 }

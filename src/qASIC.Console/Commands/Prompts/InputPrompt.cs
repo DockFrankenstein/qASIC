@@ -4,7 +4,7 @@
     {
         public override bool ParseArguments => true;
 
-        public override ConsoleArgument[] Prepare(CommandArgs args) =>
+        public override ConsoleArgument[] Prepare(GameCommandArgs args) =>
             args.args;
     }
 }

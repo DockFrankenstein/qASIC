@@ -4,7 +4,7 @@
     {
         public string Text { get; private set; }
 
-        public override ConsoleArgument[] Prepare(CommandArgs args)
+        public override ConsoleArgument[] Prepare(GameCommandArgs args)
         {
             Text = args.inputString;
             return new ConsoleArgument[] 

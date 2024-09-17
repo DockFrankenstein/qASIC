@@ -2,11 +2,11 @@
 {
     public abstract class CommandPrompt
     {
-        public virtual bool CanExecute(CommandArgs args) =>
+        public virtual bool CanExecute(GameCommandArgs args) =>
             true;
 
         public virtual bool ParseArguments => false;
 
-        public abstract ConsoleArgument[] Prepare(CommandArgs args);
+        public abstract ConsoleArgument[] Prepare(GameCommandArgs args);
     }
 }

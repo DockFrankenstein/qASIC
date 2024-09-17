@@ -1,5 +1,38 @@
-﻿namespace qASIC.Console
+﻿using System;
+
+namespace qASIC
 {
+    public class GameCommandException : Exception
+    {
+        public GameCommandException() : base() { }
+        public GameCommandException(string message) : base(message) { }
+
+        public override string ToString()
+        {
+            return $"{Message}\n{StackTrace}";
+        }
+
+        public string ToString(bool includeStackTrace) =>
+            includeStackTrace ?
+            ToString() :
+            Message;
+    }
+
+    public class CommandParseException : GameCommandException
+    {
+        public CommandParseException(Type type, string arg)
+        {
+            this.type = type;
+            this.arg = arg;
+        }
+
+        Type type;
+        string arg;
+
+        public override string Message =>
+            $"Unable to parse '{arg}' to {type}";
+    }
+
     public class CommandArgsCountException : GameCommandException
     {
         public CommandArgsCountException() { }

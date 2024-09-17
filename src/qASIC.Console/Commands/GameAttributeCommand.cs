@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace qASIC.Console.Commands
 {
-    public class GameAttributeCommand : IGameCommand
+    public class GameAttributeCommand : ICommand
     {
         public GameAttributeCommand() : this(string.Empty) { }
         public GameAttributeCommand(string commandName)
@@ -37,6 +37,8 @@ namespace qASIC.Console.Commands
 
         public object Run(CommandArgs args)
         {
+            var gameArgs = args as GameCommandArgs;
+
             var maxArgLimit = Targets
                 .Select(x => x.maxArgsCount)
                 .Max();
@@ -45,9 +47,9 @@ namespace qASIC.Console.Commands
                 .Select(x => x.minArgsCount)
                 .Min();
 
-            args.CheckArgumentCount(minArgLimit, maxArgLimit);
+            gameArgs.CheckArgumentCount(minArgLimit, maxArgLimit);
 
-            ConsoleArgument[] cmdArgs = args.args
+            ConsoleArgument[] cmdArgs = gameArgs.args
                 .Skip(1)
                 .ToArray();
 
@@ -76,7 +78,7 @@ namespace qASIC.Console.Commands
             if (FindCommandAndTryRun(new List<object>()))
                 return returnValue;
 
-            throw new CommandParseException(closestMatch.argTypes[closestMatchCorrectArgsCount], args[closestMatchCorrectArgsCount + 1].arg);
+            throw new CommandParseException(closestMatch.argTypes[closestMatchCorrectArgsCount], gameArgs[closestMatchCorrectArgsCount + 1].arg);
 
             bool FindCommandAndTryRun(List<object> values, bool first = true)
             {
@@ -114,12 +116,12 @@ namespace qASIC.Console.Commands
                     var targetArgTypes = new Type[valueTypes.Length];
                     Array.Copy(target.argTypes, targetArgTypes, targetArgTypes.Length);
 
-                    if (target.forwardCommandArgs)
-                        finalValues.Insert(0, args);
+                    if (target.commandArgsType != null)
+                        finalValues.Insert(0, gameArgs);
 
                     var parameterCount = target.maxArgsCount;
 
-                    if (target.forwardCommandArgs)
+                    if (target.commandArgsType != null)
                         parameterCount++;
 
                     while (finalValues.Count() < parameterCount)
@@ -139,7 +141,7 @@ namespace qASIC.Console.Commands
                     if (argCount != valueTypes.Length)
                         continue;
 
-                    returnValue = target.Invoke(finalValues.ToArray(), args);
+                    returnValue = target.Invoke(finalValues.ToArray(), gameArgs);
                     return true;
                 }
 
@@ -172,7 +174,7 @@ namespace qASIC.Console.Commands
                 }
             }
 
-            public object Invoke(object[] values, CommandArgs args)
+            public object Invoke(object[] values, GameCommandArgs args)
             {
                 var targetType = memberInfo.DeclaringType!;
                 var targets = targetAttr
@@ -232,9 +234,9 @@ namespace qASIC.Console.Commands
 
             protected abstract bool IsStatic { get; }
 
-            protected abstract object InvokeForItem(object item, object[] values, CommandArgs args);
+            protected abstract object InvokeForItem(object item, object[] values, GameCommandArgs args);
 
-            protected void LogExecuteBegin(CommandArgs args, object target) =>
+            protected void LogExecuteBegin(GameCommandArgs args, object target) =>
                 args.console.Log($"Executing command for target '{target ?? "NULL"}'");
 
             public MemberInfo memberInfo;
@@ -243,8 +245,8 @@ namespace qASIC.Console.Commands
             public Type[] argTypes;
             public int minArgsCount;
             public int maxArgsCount;
-            /// <summary>Whenever target has <see cref="CommandArgs"/> as the first parameter</summary>
-            public bool forwardCommandArgs;
+            /// <summary>Whenever target has <see cref="GameCommandArgs"/> as the first parameter</summary>
+            public Type commandArgsType;
         }
 
         public class MethodTarget : Target
@@ -255,9 +257,11 @@ namespace qASIC.Console.Commands
 
                 var parameters = methodInfo.GetParameters();
 
-                forwardCommandArgs = parameters.Length > 0 && parameters[0].ParameterType == typeof(CommandArgs);
+                commandArgsType = null;
+                if (parameters.Length > 0 && parameters[0].ParameterType.IsAssignableFrom(typeof(GameCommandArgs)))
+                    commandArgsType = parameters[0].ParameterType;
 
-                if (forwardCommandArgs)
+                if (commandArgsType != null)
                     parameters = parameters
                         .Skip(1)
                         .ToArray();
@@ -277,7 +281,7 @@ namespace qASIC.Console.Commands
 
             protected override bool IsStatic => methodInfo.IsStatic;
 
-            protected override object InvokeForItem(object item, object[] values, CommandArgs args)
+            protected override object InvokeForItem(object item, object[] values, GameCommandArgs args)
             {
                 return methodInfo.Invoke(item, values);
             }
@@ -288,7 +292,7 @@ namespace qASIC.Console.Commands
             public FieldTarget(FieldInfo fieldInfo) : base(fieldInfo)
             {
                 this.fieldInfo = fieldInfo;
-                forwardCommandArgs = false;
+                commandArgsType = null;
                 minArgsCount = 0;
                 maxArgsCount = 1;
                 argTypes = new Type[] { fieldInfo.FieldType! };
@@ -298,7 +302,7 @@ namespace qASIC.Console.Commands
 
             protected override bool IsStatic => fieldInfo.IsStatic;
 
-            protected override object InvokeForItem(object item, object[] values, CommandArgs args)
+            protected override object InvokeForItem(object item, object[] values, GameCommandArgs args)
             {
                 if (values[0] == Type.Missing)
                     return fieldInfo.GetValue(item);
@@ -313,7 +317,7 @@ namespace qASIC.Console.Commands
             public PropertyTarget(PropertyInfo propertyInfo) : base(propertyInfo)
             {
                 this.propertyInfo = propertyInfo;
-                forwardCommandArgs = false;
+                commandArgsType = null;
                 minArgsCount = 0;
                 maxArgsCount = 1;
                 argTypes = new Type[] { propertyInfo.PropertyType! };
@@ -323,7 +327,7 @@ namespace qASIC.Console.Commands
 
             protected override bool IsStatic => propertyInfo.GetAccessors(true)[0].IsStatic;
 
-            protected override object InvokeForItem(object item, object[] values, CommandArgs args)
+            protected override object InvokeForItem(object item, object[] values, GameCommandArgs args)
             {
                 if (values[0] == Type.Missing)
                     return propertyInfo.GetValue(item);

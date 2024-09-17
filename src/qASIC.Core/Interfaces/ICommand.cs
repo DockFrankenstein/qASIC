@@ -1,6 +1,6 @@
-﻿namespace qASIC.Console.Commands
+﻿namespace qASIC
 {
-    public interface IGameCommand
+    public interface ICommand
     {
         /// <summary>Main name used for identifying which command to execute.</summary>
         string CommandName { get; }
@@ -12,7 +12,7 @@
         string DetailedDescription { get; }
 
         /// <summary>Method for executing command logic.</summary>
-        /// <param name="args">Parsed arguments, this includes the command name.</param>
+        /// <param name="args">Arguments for the command.</param>
         object Run(CommandArgs args);
     }
 }

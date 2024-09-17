@@ -8,7 +8,7 @@ namespace qASIC.Console.Commands.BuiltIn
         public override string Description => "Closes the application.";
         public override string[] Aliases => new string[] { "quit" };
 
-        public override object Run(CommandArgs args)
+        public override object Run(GameCommandArgs args)
         {
             args.CheckArgumentCount(0);
             Logs.Log("Goodbye");
