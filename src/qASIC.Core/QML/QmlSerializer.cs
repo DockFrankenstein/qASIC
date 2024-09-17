@@ -20,7 +20,12 @@ namespace qASIC.QML
             foreach (var element in document)
                 txt.Append(element.CreateContent());
 
-            return txt.ToString();
+            var finalTxt = txt.ToString();
+
+            if (finalTxt.EndsWith("\n"))
+                finalTxt = finalTxt.Substring(0, finalTxt.Length - 1);
+
+            return finalTxt;
         }
 
         public QmlDocument Deserialize(string txt)
