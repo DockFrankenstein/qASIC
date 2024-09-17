@@ -2,10 +2,10 @@
 
 namespace qASIC
 {
-    public class GameCommandException : Exception
+    public class CommandException : Exception
     {
-        public GameCommandException() : base() { }
-        public GameCommandException(string message) : base(message) { }
+        public CommandException() : base() { }
+        public CommandException(string message) : base(message) { }
 
         public override string ToString()
         {
@@ -18,7 +18,7 @@ namespace qASIC
             Message;
     }
 
-    public class CommandParseException : GameCommandException
+    public class CommandParseException : CommandException
     {
         public CommandParseException(Type type, string arg)
         {
@@ -33,7 +33,7 @@ namespace qASIC
             $"Unable to parse '{arg}' to {type}";
     }
 
-    public class CommandArgsCountException : GameCommandException
+    public class CommandArgsCountException : CommandException
     {
         public CommandArgsCountException() { }
         public CommandArgsCountException(int inputArgsCount, int minArgsCount, int maxArgsCount)

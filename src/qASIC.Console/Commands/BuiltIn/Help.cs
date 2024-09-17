@@ -41,7 +41,7 @@ namespace qASIC.Console.Commands.BuiltIn
             if (targetCommand != null)
             {
                 if (!commandList.TryGetCommand(targetCommand, out ICommand command) || command == null)
-                    throw new GameCommandException($"Command '{targetCommand}' does not exist!");
+                    throw new CommandException($"Command '{targetCommand}' does not exist!");
 
                 if (command.DetailedDescription == null && command.Description == null)
                 {
@@ -56,7 +56,7 @@ namespace qASIC.Console.Commands.BuiltIn
             var startIndex = PageCommandLimit * index;
 
             if (startIndex >= commandList.Length)
-                throw new GameCommandException("Page index out of range");
+                throw new CommandException("Page index out of range");
 
             StringBuilder stringBuilder = new StringBuilder(MultiplePages ? 
                 $"List of avaliable commands, page: {index} \n" :

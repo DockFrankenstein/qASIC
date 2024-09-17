@@ -5,9 +5,9 @@ using System.Reflection;
 using qASIC.Console.Parsing.Arguments;
 using System;
 using System.Collections.Generic;
-using qASIC.Console.Commands.Prompts;
 using System.Linq;
 using qASIC.Core;
+using qASIC.CommandPrompts;
 
 namespace qASIC.Console
 {
@@ -181,7 +181,9 @@ namespace qASIC.Console
             }
 
             //Executing
+            RegisterLogManager(args.logs);
             ReturnedValue = Execute(CurrentCommand.CommandName, () => CurrentCommand.Run(args));
+            UnregisterLogManager(args.logs);
 
             //After
             if (ReturnedValue is CommandPrompt)
@@ -204,7 +206,7 @@ namespace qASIC.Console
 
                 return output;
             }
-            catch (GameCommandException e)
+            catch (CommandException e)
             {
                 LogError(e.ToString(IncludeStackTraceInCommandExceptions));
             }
@@ -238,21 +240,31 @@ namespace qASIC.Console
                         RegisterLoggable(_instance);
                         break;
                     case false:
-                        DeregisterLoggable(_instance);
+                        UnregisterLoggable(_instance);
                         break;
                 }
             }
         }
 
-        /// <summary>Registers to messages from an <see cref="IHasLogs"/> and it's children.</summary>
+        /// <summary>Registers to messages from an <see cref="IHasLogs"/>.</summary>
         /// <param name="loggable">Loggable to register.</param>
         public void RegisterLoggable(IHasLogs loggable) =>
-            loggable.Logs.OnLog += a => Log(a);
+            RegisterLogManager(loggable.Logs);
 
-        /// <summary>Deregisters from messages from an <see cref="IHasLogs"/> and it's children.</summary>
-        /// <param name="loggable">Loggable to deregister.</param>
-        public void DeregisterLoggable(IHasLogs loggable) =>
-            loggable.Logs.OnLog -= a => Log(a);
+        /// <summary>Unregisters from messages from an <see cref="IHasLogs"/>.</summary>
+        /// <param name="loggable">Loggable to unregister.</param>
+        public void UnregisterLoggable(IHasLogs loggable) =>
+            UnregisterLogManager(loggable.Logs);
+
+        /// <summary>Registers to messages from an <see cref="LogManager"/>.</summary>
+        /// <param name="manager">Manager to register.</param>
+        public void RegisterLogManager(LogManager manager) =>
+            manager.OnLog += a => Log(a);
+
+        /// <summary>Unregisters from messages from an <see cref="LogManager"/>.</summary>
+        /// <param name="manager">Manager to unregister.</param>
+        public void UnregisterLogManager(LogManager manager) =>
+            manager.OnLog -= a => Log(a);
         #endregion
 
         #region Logging

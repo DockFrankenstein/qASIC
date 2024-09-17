@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace qASIC.Console.Commands
 {
-    public class GameCommandList : IEnumerable<ICommand>
+    public class GameCommandList : ICommandList, IEnumerable<ICommand>
     {
         private List<RegisteredCommand> Commands { get; set; } = new List<RegisteredCommand>();
 
@@ -16,12 +16,12 @@ namespace qASIC.Console.Commands
         /// <param name="command">Command to add.</param>
         /// <returns>Returns itself.</returns>
         public GameCommandList AddCommand(ICommand command) =>
-            AddCommandRage(new ICommand[] { command });
+            AddCommandRange(new ICommand[] { command });
 
         /// <summary>Adds commands to the list.</summary>
         /// <param name="command">Collection of commands to add.</param>
         /// <returns>Returns itself.</returns>
-        public GameCommandList AddCommandRage(IEnumerable<ICommand> commands)
+        public GameCommandList AddCommandRange(IEnumerable<ICommand> commands)
         {
             Commands.AddRange(commands.Select(x => new RegisteredCommand(x)));
             OnCommandsAdded?.Invoke(commands);
@@ -31,7 +31,7 @@ namespace qASIC.Console.Commands
         /// <summary>Adds all built-in commands to the list.</summary>
         /// <returns>Returns itself.</returns>
         public GameCommandList AddBuiltInCommands() =>
-            AddCommandRage(new ICommand[]
+            AddCommandRange(new ICommand[]
             {
                 new BuiltIn.Clear(),
                 new BuiltIn.Echo(),
@@ -63,7 +63,7 @@ namespace qASIC.Console.Commands
             var commands = TypeFinder.CreateConstructorsFromTypes<ICommand>(commandTypes)
                 .Where(x => x != null);
 
-            AddCommandRage(commands);
+            AddCommandRange(commands);
 
             return this;
         }
@@ -146,6 +146,12 @@ namespace qASIC.Console.Commands
             command = targets.FirstOrDefault();
             return command != null;
         }
+
+        void ICommandList.AddCommand(ICommand command) =>
+            AddCommand(command);
+
+        void ICommandList.AddCommandRange(IEnumerable<ICommand> commands) =>
+            AddCommandRange(commands);
 
         public IEnumerator<ICommand> GetEnumerator() =>
             Commands

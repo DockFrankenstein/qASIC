@@ -1,4 +1,4 @@
-﻿using qASIC.Console.Commands.Prompts;
+﻿using qASIC.CommandPrompts;
 using System;
 using System.Collections.Generic;
 using SysConsole = System.Console;

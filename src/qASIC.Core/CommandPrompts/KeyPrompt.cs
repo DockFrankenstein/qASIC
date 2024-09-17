@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace qASIC.Console.Commands.Prompts
+namespace qASIC.CommandPrompts
 {
     public class KeyPrompt : CommandPrompt
     {
@@ -29,10 +29,10 @@ namespace qASIC.Console.Commands.Prompts
 
         public NavigationKey Key { get; private set; } = NavigationKey.None;
 
-        public override bool CanExecute(GameCommandArgs args) =>
+        public override bool CanExecute(CommandArgs args) =>
             args.inputString.Length > 0;
 
-        public override ConsoleArgument[] Prepare(GameCommandArgs args)
+        public override ConsoleArgument[] Prepare(CommandArgs args)
         {
             string s = args.inputString.First().ToString();
 

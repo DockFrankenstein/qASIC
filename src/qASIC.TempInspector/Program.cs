@@ -1,12 +1,12 @@
 ﻿using qASIC.Communication;
 using qASIC;
 using qASIC.Console;
-using qASIC.Console.Commands.Prompts;
 using qASIC.Communication.Discovery;
 using System.Text;
 using System.Net;
 using qASIC.Console.Commands.Attributes;
 using qASIC.Console.Commands;
+using qASIC.CommandPrompts;
 
 namespace qASICRemote
 {
@@ -198,10 +198,10 @@ namespace qASICRemote
             if (addressParts.Length > 2 ||
                 !IPAddress.TryParse(addressParts[0], out IPAddress finalAddress) ||
                 (addressParts.Length == 2 && !int.TryParse(addressParts[1], out port)))
-                throw new GameCommandException($"Could not parse address '{address}'");
+                throw new CommandException($"Could not parse address '{address}'");
 
             if (client!.IsActive)
-                throw new GameCommandException("Client is already active, this application doesn't support multiple client instances!");
+                throw new CommandException("Client is already active, this application doesn't support multiple client instances!");
 
             client.Connect(finalAddress, port);
         }
@@ -222,7 +222,7 @@ namespace qASICRemote
         private string Cmd_SelectedConsoleIndex()
         {
             if (SelectedConsole == null)
-                throw new GameCommandException("No console is selected");
+                throw new CommandException("No console is selected");
 
             return SelectedConsole.Name;
         }
@@ -234,7 +234,7 @@ namespace qASICRemote
                 .FirstOrDefault()?.Console;
 
             if (console == null)
-                throw new GameCommandException("Console does not exist!");
+                throw new CommandException("Console does not exist!");
 
             SelectedConsole = console;
             args.console.Log($"Selected console '{SelectedConsole.Name}'.");
@@ -246,7 +246,7 @@ namespace qASICRemote
             var consoles = consoleManager.ToArray();
 
             if (!consoles.IndexInRange(index))
-                throw new GameCommandException("Console index is out of range!");
+                throw new CommandException("Console index is out of range!");
 
             Cmd_SelectedConsoleIndex(args, consoles[index].Console.Name);
         }

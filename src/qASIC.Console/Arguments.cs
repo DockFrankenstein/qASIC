@@ -1,4 +1,4 @@
-﻿using qASIC.Console.Commands.Prompts;
+﻿using qASIC.CommandPrompts;
 
 namespace qASIC.Console
 {
@@ -8,6 +8,5 @@ namespace qASIC.Console
         public GameCommandArgs(CommandArgs args) : base(args) { }
 
         public GameConsole console;
-        public CommandPrompt prompt;
     }
 }

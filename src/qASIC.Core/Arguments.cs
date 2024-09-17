@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
+using qASIC.CommandPrompts;
 
 namespace qASIC
 {
@@ -13,12 +14,14 @@ namespace qASIC
             inputString = other.inputString;
             commandName = other.commandName;
             args = other.args;
+            prompt = other.prompt;
             logs = other.logs;
         }
 
         public string inputString;
         public string commandName;
         public ConsoleArgument[] args;
+        public CommandPrompt prompt;
         public LogManager logs = new LogManager();
 
         public ConsoleArgument this[int index]
