@@ -1,7 +1,7 @@
 ﻿using qASIC.CommandPrompts;
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using SysConsole = System.Console;
 
 namespace qASIC.Console
@@ -57,7 +57,7 @@ namespace qASIC.Console
             VisibleLogs.Add(log, new LogData()
             {
                 consoleTop = SysConsole.CursorTop,
-                lineLength = txt.Length,
+                emptyString = CreateEmptyStringForLog(log),
             });
 
             SysConsole.WriteLine(ColorText(txt, Console.GetLogColor(log)));
@@ -83,12 +83,24 @@ namespace qASIC.Console
             SysConsole.CursorTop = logData.consoleTop;
             SysConsole.CursorLeft = 0;
 
-            var emptyLength = logData.lineLength - txt.Length;
-            VisibleLogs[log].lineLength = txt.Length;
+            //Override with garbage data, not sure why it doesn't
+            //work with spaces
+            SysConsole.Write(logData.emptyString.Replace(' ', '@'));
 
+            SysConsole.CursorTop = logData.consoleTop;
+            SysConsole.CursorLeft = 0;
+
+            //Clear
+            SysConsole.Write(logData.emptyString);
+
+            SysConsole.CursorTop = logData.consoleTop;
+            SysConsole.CursorLeft = 0;
+
+            //Write new log
             SysConsole.Write(ColorText(txt, Console.GetLogColor(log)));
-            if (emptyLength > 0)
-                SysConsole.Write(new string(' ', emptyLength));
+
+            if (SysConsole.CursorTop >= top)
+                top = SysConsole.CursorTop + 1;
 
             SysConsole.CursorTop = top;
             SysConsole.CursorLeft = left;
@@ -170,11 +182,15 @@ namespace qASIC.Console
 
         protected string ColorText(string txt, qColor color) =>
             $"\u001b[38;2;{color.red};{color.green};{color.blue}m{txt}\u001b[0m";
+        //txt;
+
+        protected string CreateEmptyStringForLog(qLog log) =>
+            ColorText(new string (CreateLogText(log).Select(x => char.IsControl(x) ? x : ' ').ToArray()), log.color);
 
         class LogData
         {
             public int consoleTop;
-            public int lineLength;
+            public string emptyString;
         }
     }
 }
