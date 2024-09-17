@@ -14,6 +14,7 @@ namespace qASIC.Options.Commands
 
         public override string CommandName => "changeoption";
         public override string[] Aliases => new string[] { "setoption", "changesetting", "setsetting" };
+        public override string Description => "Changed the value of an option.";
 
         KeyPrompt navigationPrompt = new KeyPrompt();
         TextPrompt valuePrompt = new TextPrompt();

@@ -8,6 +8,7 @@ namespace qASIC.Options.Commands
 
         public override string CommandName => "optionslist";
         public override string[] Aliases => new string[] { "settingslist", "listoptions", "listsettings" };
+        public override string Description => "Shows a list of options.";
 
         public override object Run(CommandArgs args)
         {
