@@ -88,8 +88,8 @@ namespace qASIC.Options
         public void Initialize(bool log = true)
         {
             EnsureListHasAllTargets();
-            Revert(false);
-            Apply(false);
+            Revert(log);
+            Apply(log);
 
             if (log)
                 Logs.Log("Settings initialized!", "settings_init");
@@ -190,7 +190,7 @@ namespace qASIC.Options
             }
 
             if (log)
-                Logs.Log($"Successfully saved options at {Serializer.Path}", "settings_save_success");
+                Logs.Log($"Successfully saved options at {Serializer.Path.Replace('\\', '/')}", "settings_save_success");
         }
 
         /// <summary>Reverts options from the save file.</summary>

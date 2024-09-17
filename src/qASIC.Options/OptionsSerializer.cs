@@ -25,15 +25,21 @@ namespace qASIC.Options
                 return serializer.Serialize(doc);
             };
 
-            OnLoad = txt =>
+            OnLoad = (txt, list) =>
             {
                 var serializer = new QmlSerializer();
                 var doc = serializer.Deserialize(txt);
 
                 var dict = new Dictionary<string, object>();
 
-                foreach (var item in doc.Where(x => x is QmlEntry).Select(x => x as QmlEntry).GroupBy(x => x.Path))
-                    dict.Add(item.Key, item.First());
+                var items = doc
+                    .Where(x => x is QmlEntry)
+                    .Select(x => x as QmlEntry)
+                    .GroupBy(x => x.Path)
+                    .Where(x => list.ContainsKey(x.Key));
+
+                foreach (var item in items)
+                    dict.Add(item.Key, item.First().GetValue(list[item.Key].DefaultValue.GetType()));
 
                 return dict;
             };
@@ -42,7 +48,7 @@ namespace qASIC.Options
         public string Path { get; set; }
 
         public event Func<Dictionary<string, object>, string> OnSave;
-        public event Func<string, Dictionary<string, object>> OnLoad;
+        public event Func<string, OptionsList, Dictionary<string, object>> OnLoad;
 
         public void Save(OptionsList list)
         {
@@ -65,13 +71,13 @@ namespace qASIC.Options
 
         public void Load(OptionsList list)
         {
-            if (string.IsNullOrWhiteSpace(Path)) 
+            if (string.IsNullOrWhiteSpace(Path) || !File.Exists(Path))
                 return;
 
             using (var reader = new StreamReader(Path))
             {
                 var txt = reader.ReadToEnd();
-                var loadedItemList = OnLoad(txt);
+                var loadedItemList = OnLoad(txt, list);
 
                 var loadedList = new OptionsList();
 

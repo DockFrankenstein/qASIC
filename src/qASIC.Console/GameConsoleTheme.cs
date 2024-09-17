@@ -19,6 +19,8 @@ namespace qASIC.Console
             ["settings_set_multiple"] = new qColor(0, 0, 255),
             ["settings_ensure_targets"] = new qColor(0, 0, 255),
             ["settings_init"] = new qColor(0, 0, 255),
+            ["settings_save_success"] = new qColor(0, 0, 255),
+            ["settings_load_success"] = new qColor(0, 0, 255),
         };
 
         public qColor this[string s]

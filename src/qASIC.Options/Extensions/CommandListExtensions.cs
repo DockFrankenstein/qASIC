@@ -7,6 +7,8 @@
         /// <param name="manager">Manager for which commands are for.</param>
         public static ICommandList AddBuiltInOptionsCommands(this ICommandList list, OptionsManager manager) =>
             list.AddCommand(new Commands.OptionsList(manager))
-                .AddCommand(new Commands.ChangeOption(manager));
+                .AddCommand(new Commands.ChangeOption(manager))
+                .AddCommand(new Commands.ApplyOptions(manager))
+                .AddCommand(new Commands.RevertOptions(manager));
     }
 }
