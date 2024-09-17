@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System;
+using System.Linq;
 
 namespace qASIC.Console.Commands.BuiltIn
 {
@@ -37,7 +38,8 @@ namespace qASIC.Console.Commands.BuiltIn
                 }
             }
 
-            var commandList = args.console.CommandList!;
+            var commandList = args.console.CommandList;
+            var commands = commandList.ToList();
             if (targetCommand != null)
             {
                 if (!commandList.TryGetCommand(targetCommand, out ICommand command) || command == null)
@@ -55,15 +57,15 @@ namespace qASIC.Console.Commands.BuiltIn
 
             var startIndex = PageCommandLimit * index;
 
-            if (startIndex >= commandList.Length)
+            if (startIndex >= commands.Count)
                 throw new CommandException("Page index out of range");
 
             StringBuilder stringBuilder = new StringBuilder(MultiplePages ? 
                 $"List of avaliable commands, page: {index} \n" :
                 "List of avaliable commands \n");
 
-            for (int i = index * PageCommandLimit; i < Math.Max(index * (PageCommandLimit + 1), commandList.Length); i++)
-                stringBuilder.AppendLine($"{commandList[i].CommandName} - {commandList[i].Description ?? "No description"}");
+            for (int i = index * PageCommandLimit; i < Math.Max(index * (PageCommandLimit + 1), commands.Count); i++)
+                stringBuilder.AppendLine($"{commands[i].CommandName} - {commands[i].Description ?? "No description"}");
 
             Logs.Log(stringBuilder.ToString(), "info");
 

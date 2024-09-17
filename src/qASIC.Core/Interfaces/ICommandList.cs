@@ -1,10 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace qASIC
 {
-    public interface ICommandList
+    public interface ICommandList : IEnumerable<ICommand>
     {
-        void AddCommand(ICommand command);
-        void AddCommandRange(IEnumerable<ICommand> commands);
+        ICommandList AddCommand(ICommand command);
+        ICommandList AddCommandRange(IEnumerable<ICommand> commands);
+
+        event Action<IEnumerable<ICommand>> OnCommandsAdded;
+
+        public bool TryGetCommand(string commandName, out ICommand command);
     }
 }

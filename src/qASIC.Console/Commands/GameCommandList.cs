@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace qASIC.Console.Commands
 {
-    public class GameCommandList : ICommandList, IEnumerable<ICommand>
+    public class GameCommandList : ICommandList
     {
         private List<RegisteredCommand> Commands { get; set; } = new List<RegisteredCommand>();
 
-        public Action<IEnumerable<ICommand>> OnCommandsAdded;
+        public event Action<IEnumerable<ICommand>> OnCommandsAdded;
 
         /// <summary>Adds command to the list.</summary>
         /// <param name="command">Command to add.</param>
@@ -147,10 +147,10 @@ namespace qASIC.Console.Commands
             return command != null;
         }
 
-        void ICommandList.AddCommand(ICommand command) =>
+        ICommandList ICommandList.AddCommand(ICommand command) =>
             AddCommand(command);
 
-        void ICommandList.AddCommandRange(IEnumerable<ICommand> commands) =>
+        ICommandList ICommandList.AddCommandRange(IEnumerable<ICommand> commands) =>
             AddCommandRange(commands);
 
         public IEnumerator<ICommand> GetEnumerator() =>

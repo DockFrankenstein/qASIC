@@ -16,16 +16,16 @@ namespace qASIC.Console
         public const string SYSTEM_NAME = "qASIC.Console";
         public const string SYSTEM_VERSION = "1.0.0";
 
-        public GameConsole(GameCommandList commandList = null, ArgumentsParser parser = null) :
+        public GameConsole(ICommandList commandList = null, ArgumentsParser parser = null) :
             this(Guid.NewGuid().ToString(), commandList, parser) { }
 
-        public GameConsole(string name, GameCommandList commandList = null, ArgumentsParser parser = null) :
+        public GameConsole(string name, ICommandList commandList = null, ArgumentsParser parser = null) :
             this(null, name, commandList, parser) { }
 
-        public GameConsole(qInstance instance, GameCommandList commandList = null, ArgumentsParser parser = null) :
+        public GameConsole(qInstance instance, ICommandList commandList = null, ArgumentsParser parser = null) :
             this(instance, Guid.NewGuid().ToString(), commandList, parser) { }
 
-        public GameConsole(qInstance instance, string name, GameCommandList commandList = null, ArgumentsParser parser = null)
+        public GameConsole(qInstance instance, string name, ICommandList commandList = null, ArgumentsParser parser = null)
         {
             Instance = instance;
 
@@ -89,7 +89,7 @@ namespace qASIC.Console
 
         public List<GameLog> Logs { get; internal set; } = new List<GameLog>();
 
-        public GameCommandList CommandList { get; set; }
+        public ICommandList CommandList { get; set; }
         public ArgumentsParser CommandParser { get; set; }
 
         public ICommand CurrentCommand { get; private set; } = null;
