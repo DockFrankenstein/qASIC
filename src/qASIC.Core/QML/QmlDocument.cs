@@ -1,8 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 
 namespace qASIC.QML
 {
@@ -75,7 +74,7 @@ namespace qASIC.QML
             AddElement(new QmlSpace());
         #endregion
 
-        #region Getting
+        #region Getting elements
         public QmlEntry GetEntry(string path) =>
             EntryMap.TryGetValue(path, out var val) ?
             val.Where(x => !x.IsArrayStart).FirstOrDefault() :
@@ -96,12 +95,48 @@ namespace qASIC.QML
 
             return null;
         }
+        #endregion
 
-        public string GetValue(string path, string defaultValue = null) =>
-            GetEntry(path)?.Value ?? defaultValue;
+        #region Getting Single Value
+        public T GetValue<T>(string path, T defaultValue = default) =>
+            QmlUtility.ParseValue<T>(GetEntry(path)?.Value, defaultValue);
 
-        public string[] GetValues(string path) =>
-            GetEntries(path).Select(x => x.Value).ToArray();
+        public object GetValue(string path, Type type, object defaultValue = null) =>
+            QmlUtility.ParseValue(type, GetEntry(path)?.Value, defaultValue);
+
+        public bool TryGetValue<T>(string path, out T result) =>
+            TryGetValue(path, default, out result);
+
+        public bool TryGetValue<T>(string path, T defaultValue, out T result) =>
+            QmlUtility.TryParseValue(GetEntry(path)?.Value, defaultValue, out result);
+
+        public bool TryGetValue(string path, Type type, out object result) =>
+            TryGetValue(path, type, default, out result);
+
+        public bool TryGetValue(string path, Type type, object defaultValue, out object result) =>
+            QmlUtility.TryParseValue(type, GetEntry(path)?.Value, defaultValue, out result);
+        #endregion
+
+        #region Getting Array Value
+        public List<T> GetValues<T>(string path)
+        {
+            var list = new List<T>();
+            foreach (var entry in GetEntries(path))
+                if (entry.TryGetValue<T>(out T obj))
+                    list.Add(obj);
+
+            return list;
+        }
+
+        public List<object> GetValues(Type type, string path)
+        {
+            List<object> list = new List<object>();
+            foreach (var entry in GetEntries(path))
+                if (entry.TryGetValue(type, out object obj))
+                    list.Add(obj);
+
+            return list;
+        }
         #endregion
 
         public IEnumerator<QmlElement> GetEnumerator() =>

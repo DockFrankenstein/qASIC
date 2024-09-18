@@ -1,4 +1,4 @@
-﻿using qASIC.Console.Parsing.Values;
+﻿using qASIC.Parsing;
 using System.Collections.Generic;
 
 namespace qASIC.Console.Parsing.Arguments
@@ -7,22 +7,7 @@ namespace qASIC.Console.Parsing.Arguments
     {
         public ArgumentsParser() { }
 
-        public List<ValueParser> ValueParsers { get; set; } = new List<ValueParser>()
-        {
-            new IntParser(),
-            new UIntParser(),
-            new FloatParser(),
-            new DoubleParser(),
-            new DecimalParser(),
-            new LongParser(),
-            new UlongParser(),
-            new ByteParser(),
-            new SByteParser(),
-            new ShortParser(),
-            new UShortParser(),
-            new BoolParser(),
-            new StringParser(),
-        };
+        public List<ValueParser> ValueParsers { get; set; } = new List<ValueParser>(ValueParser.CreateStandardParserArray());
 
         public abstract ConsoleArgument[] ParseString(string cmd);
 

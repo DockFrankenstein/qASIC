@@ -1,23 +1,19 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace qASIC.QML
 {
     public class QmlEntry : QmlElement
     {
         public QmlEntry() : base() { }
-        public QmlEntry(string relativePath, string value) : this(relativePath, relativePath, value) { }
+        public QmlEntry(string relativePath, object value) : this(relativePath, relativePath, value) { }
 
-        public QmlEntry(string path, string relativePath, string value)
+        public QmlEntry(string path, string relativePath, object value)
         {
             Path = path;
             RelativePath = relativePath;
-            Value = value;
+            Value = value?.ToString() ?? string.Empty;
         }
 
         public string Path { get; set; }
@@ -33,20 +29,25 @@ namespace qASIC.QML
         public bool IsArrayItem { get; set; }
         public bool IsArrayStart { get; set; }
 
-        public T GetValue<T>() =>
-            (T)GetValue(typeof(T));
+        #region Getting Value
+        public T GetValue<T>(T defaultValue = default) =>
+            QmlUtility.ParseValue<T>(Value, defaultValue);
 
-        public object GetValue(Type type)
-        {
-            try
-            {
-                return Convert.ChangeType(Value, type);
-            }
-            catch
-            {
-                return null;
-            }
-        }
+        public object GetValue(Type type, object defaultValue = null) =>
+            QmlUtility.ParseValue(type, Value, defaultValue);
+
+        public bool TryGetValue<T>(out T result) =>
+            TryGetValue(default, out result);
+
+        public bool TryGetValue<T>(T defaultValue, out T result) =>
+            QmlUtility.TryParseValue(Value, defaultValue, out result);
+
+        public bool TryGetValue(Type type, out object result) =>
+            TryGetValue(type, default, out result);
+
+        public bool TryGetValue(Type type, object defaultValue, out object result) =>
+            QmlUtility.TryParseValue(type, Value, defaultValue, out result);
+        #endregion
 
         public override string CreateContent()
         {

@@ -1,10 +1,28 @@
 ﻿using System;
 
-namespace qASIC.Console.Parsing.Values
+namespace qASIC.Parsing
 {
     public abstract class ValueParser
     {
         public ValueParser() { }
+
+        public static ValueParser[] CreateStandardParserArray() =>
+            new ValueParser[]
+            {
+                new IntParser(),
+                new UIntParser(),
+                new FloatParser(),
+                new DoubleParser(),
+                new DecimalParser(),
+                new LongParser(),
+                new UlongParser(),
+                new ByteParser(),
+                new SByteParser(),
+                new ShortParser(),
+                new UShortParser(),
+                new BoolParser(),
+                new StringParser(),
+            };
 
         public abstract Type ValueType { get; }
 

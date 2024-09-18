@@ -1,4 +1,4 @@
-﻿namespace qASIC.Console.Parsing.Values
+﻿namespace qASIC.Parsing
 {
     public class BoolParser : ValueParser<bool>
     {
