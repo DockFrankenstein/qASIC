@@ -27,7 +27,7 @@ namespace qASIC.QML
         public override void Parse(QmlProcessedDocument processed, QmlDocument doc)
         {
             var comment = new StringBuilder();
-            while (processed.PeekLine().TrimStart().StartsWith("#"))
+            while (!processed.FinishedReading && processed.PeekLine().TrimStart().StartsWith("#"))
             {
                 var line = processed.GetLine().TrimStart();
                 var trimCount = Math.Min(2, line.Length);
