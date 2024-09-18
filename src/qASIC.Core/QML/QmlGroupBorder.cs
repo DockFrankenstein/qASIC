@@ -19,11 +19,12 @@
             $"--- {Path} ---\n";
 
         public override bool ShouldParse(QmlProcessedDocument processed, QmlDocument doc) =>
-            processed.PeekLine().StartsWith('-');
+            processed.PeekLine().TrimStart().StartsWith('-');
 
         public override void Parse(QmlProcessedDocument processed, QmlDocument doc)
         {
             var line = processed.GetLine()
+                .Trim()
                 .Trim('-')
                 .Trim();
 
