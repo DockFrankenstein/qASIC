@@ -195,7 +195,10 @@ namespace qASIC.QML
 
                 for (int i = min; i < max; i++)
                 {
-                    Elements.Insert(insertAtIndex, new QmlEntry(path, relativePath, values[i]));
+                    Elements.Insert(insertAtIndex, new QmlEntry(path, relativePath, values[i])
+                    {
+                        IsArrayItem = true,
+                    });
                     insertAtIndex++;
                 }
 
