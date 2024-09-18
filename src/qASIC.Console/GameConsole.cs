@@ -130,25 +130,7 @@ namespace qASIC.Console
         /// <param name="cmd">Command text that will be parsed and executed.</param>
         public object Execute(string cmd)
         {
-            var args = new ConsoleArgument[0];
-
-            if (!(ReturnedValue is CommandPrompt prompt) || prompt.ParseArguments)
-            {
-                if (CommandParser == null)
-                    throw new Exception("Cannot parse commands with no parser!");
-
-                args = CommandParser.ParseString(cmd);
-            }
-
-            var commandArgs = new GameCommandArgs()
-            {
-                inputString = cmd,
-                commandName = CurrentCommand?.CommandName ?? (args.Length == 0 ? null : args[0].arg),
-                args = args,
-                console = this,
-            };
-
-            return Execute(commandArgs);
+            return Execute(CreateCommandArgs(cmd));
         }
 
         /// <summary>Executes a command.</summary>
@@ -218,6 +200,36 @@ namespace qASIC.Console
             }
 
             return null;
+        }
+
+        public virtual GameCommandArgs CreateCommandArgs(string cmd)
+        {
+            var args = CreateConsoleArguments(cmd);
+
+            var commandArgs = new GameCommandArgs()
+            {
+                inputString = cmd,
+                commandName = CurrentCommand?.CommandName ?? (args.Length == 0 ? null : args[0].arg),
+                args = args,
+                console = this,
+            };
+
+            return commandArgs;
+        }
+
+        protected ConsoleArgument[] CreateConsoleArguments(string cmd)
+        {
+            var args = new ConsoleArgument[0];
+
+            if (!(ReturnedValue is CommandPrompt prompt) || prompt.ParseArguments)
+            {
+                if (CommandParser == null)
+                    throw new Exception("Cannot parse commands with no parser!");
+
+                args = CommandParser.ParseString(cmd);
+            }
+
+            return args;
         }
         #endregion
 
