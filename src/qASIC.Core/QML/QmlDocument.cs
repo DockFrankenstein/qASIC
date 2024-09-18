@@ -20,7 +20,13 @@ namespace qASIC.QML
 
         public string PathPrefix { get; private set; }
         List<QmlElement> Elements { get; set; } = new List<QmlElement>();
-        Dictionary<string, List<QmlEntry>> EntryMap { get; set; } = new Dictionary<string, List<QmlEntry>>(); 
+        Dictionary<string, List<QmlEntry>> EntryMap { get; set; } = new Dictionary<string, List<QmlEntry>>();
+
+        public void Clear() =>
+            Elements.Clear();
+
+        public int Count =>
+            Elements.Count;
 
         #region Adding
         public QmlDocument AddElement(QmlElement element)
@@ -37,7 +43,7 @@ namespace qASIC.QML
             return this;
         }
 
-        public QmlDocument AddEntry(string path, string value) =>
+        public QmlDocument AddEntry(string path, object value) =>
             AddElement(new QmlEntry($"{PathPrefix}{path}", path, value));
 
         public QmlDocument StartArrayEntry(string path) =>
@@ -46,7 +52,7 @@ namespace qASIC.QML
                 IsArrayStart = true
             });
 
-        public QmlDocument AddArrayItem(string value)
+        public QmlDocument AddArrayItem(object value)
         {
             var prevEntry = GetLastElementOfType<QmlEntry>();
             return AddElement(new QmlEntry(prevEntry?.Path ?? string.Empty, prevEntry?.RelativePath ?? string.Empty, value)
@@ -136,6 +142,70 @@ namespace qASIC.QML
                     list.Add(obj);
 
             return list;
+        }
+        #endregion
+
+        #region Setting Single Value
+        public QmlDocument SetValue(string path, object value)
+        {
+            var entry = GetEntry(path);
+            if (entry == null)
+            {
+                AddEntry(path, value);
+                entry = GetLastElementOfType<QmlEntry>();
+            }
+
+            entry.Value = value?.ToString() ?? string.Empty;
+            return this;
+        }
+
+        public QmlDocument SetValues(string path, object[] values)
+        {
+            var entries = GetEntries(path);
+            var valueCount = values.Count();
+            int min = Math.Min(valueCount, entries.Length);
+            int max = Math.Max(valueCount, entries.Length);
+            bool moreValues = valueCount > entries.Length;
+
+            for (int i = 0; i < min; i++)
+                entries[i].Value = values[i]?.ToString() ?? string.Empty;
+
+            if (moreValues)
+            {
+                var insertAtIndex = entries.Length > 0 ?
+                    Elements.IndexOf(entries[min - 1]) + 1 :
+                    -1;
+
+                var relativePath = entries.Length > 0 ?
+                    entries[min - 1].RelativePath :
+                    path;
+
+                if (insertAtIndex == -1)
+                {
+                    //Finish if in group
+                    if (GetLastElementOfType<QmlGroupBorder>()?.IsEnding == false)
+                    {
+                        FinishGroup();
+                        AddSpace();
+                    }
+
+                    StartArrayEntry(path);
+                    insertAtIndex = Elements.Count;
+                }
+
+                for (int i = min; i < max; i++)
+                {
+                    Elements.Insert(insertAtIndex, new QmlEntry(path, relativePath, values[i]));
+                    insertAtIndex++;
+                }
+
+                return this;
+            }
+
+            for (int i = min; i < max; i++)
+                Elements.Remove(entries[i]);
+
+            return this;
         }
         #endregion
 
