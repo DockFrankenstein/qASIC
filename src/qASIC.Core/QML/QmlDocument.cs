@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 namespace qASIC.QML
 {
@@ -94,6 +96,12 @@ namespace qASIC.QML
 
             return null;
         }
+
+        public string GetValue(string path, string defaultValue = null) =>
+            GetEntry(path)?.Value ?? defaultValue;
+
+        public string[] GetValues(string path) =>
+            GetEntries(path).Select(x => x.Value).ToArray();
         #endregion
 
         public IEnumerator<QmlElement> GetEnumerator() =>
