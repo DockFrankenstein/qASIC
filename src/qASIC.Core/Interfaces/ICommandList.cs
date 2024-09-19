@@ -7,6 +7,7 @@ namespace qASIC
     {
         ICommandList AddCommand(ICommand command);
         ICommandList AddCommandRange(IEnumerable<ICommand> commands);
+        ICommandList RemoveCommand(ICommand command);
 
         event Action<IEnumerable<ICommand>> OnCommandsAdded;
 

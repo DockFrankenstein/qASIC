@@ -131,6 +131,17 @@ namespace qASIC.Console.Commands
             return this;
         }
 
+        public GameCommandList RemoveCommand(ICommand command)
+        {
+            var target = Commands.Where(x => x.command == command)
+                .FirstOrDefault();
+
+            if (target != null)
+                Commands.Remove(target);
+
+            return this;
+        }
+
         /// <summary>Tries to find command.</summary>
         /// <param name="commandName">Name of the command, doesn't need to be lowercase.</param>
         /// <param name="command">Found command.</param>
@@ -152,6 +163,9 @@ namespace qASIC.Console.Commands
 
         ICommandList ICommandList.AddCommandRange(IEnumerable<ICommand> commands) =>
             AddCommandRange(commands);
+
+        ICommandList ICommandList.RemoveCommand(ICommand command) =>
+            RemoveCommand(command);
 
         public IEnumerator<ICommand> GetEnumerator() =>
             Commands

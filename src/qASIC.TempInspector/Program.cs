@@ -228,7 +228,7 @@ namespace qASICRemote
         }
 
         [InspectorCommand("selectedconsole")]
-        private void Cmd_SelectedConsoleIndex(CommandArgs args, string val)
+        private void Cmd_SelectedConsoleIndex(GameCommandArgs args, string val)
         {
             var console = consoleManager.Where(x => x.Console.Name == val)
                 .FirstOrDefault()?.Console;
@@ -241,7 +241,7 @@ namespace qASICRemote
         }
 
         [InspectorCommand("selectedconsole")]
-        private void Cmd_SelectedConsoleIndex(CommandArgs args, int index)
+        private void Cmd_SelectedConsoleIndex(GameCommandArgs args, int index)
         {
             var consoles = consoleManager.ToArray();
 
@@ -315,7 +315,7 @@ namespace qASICRemote
 
             KeyPrompt navigationPrompt = new KeyPrompt();
 
-            public override object Run(CommandArgs args)
+            public override object Run(GameCommandArgs args)
             {
                 if (log == null || args.console.ReturnedValue == null)
                 {
