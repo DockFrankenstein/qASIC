@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using qASIC.Core;
 using qASIC.CommandPrompts;
+using System.Threading.Tasks;
 
 namespace qASIC.Console
 {
@@ -128,39 +129,21 @@ namespace qASIC.Console
 
         /// <summary>Executes a command.</summary>
         /// <param name="cmd">Command text that will be parsed and executed.</param>
-        public object Execute(string cmd)
-        {
-            return Execute(CreateCommandArgs(cmd));
-        }
+        public object Execute(string cmd) =>
+            Execute(CreateCommandArgs(cmd));
+
+        /// <summary>Executes a command asynchronously.</summary>
+        /// <param name="cmd">Command text that will be parsed and executed.</param>
+        public async Task<object> ExecuteAsync(string cmd) =>
+            await ExecuteAsync(CreateCommandArgs(cmd));
 
         /// <summary>Executes a command.</summary>
         /// <param name="args">Command arguments.</param>
         public object Execute(GameCommandArgs args)
         {
             //Before
-            if (CurrentCommand == null)
-            {
-                if (CommandList == null)
-                    throw new Exception("Cannot execute commands with no command list!");
-
-                if (!CommandList.TryGetCommand(args.commandName, out var command))
-                {
-                    LogError($"Command {args.commandName} doesn't exist");
-                    return null;
-                }
-
-                CurrentCommand = command;
-            }
-
-            if (ReturnedValue is CommandPrompt prompt)
-            {
-                args.prompt = prompt;
-
-                if (!prompt.CanExecute(args))
-                    return null;
-
-                args.args = prompt.Prepare(args);
-            }
+            if (!PrepareForExecute(args))
+                return null;
 
             //Executing
             RegisterLogManager(args.logs);
@@ -168,20 +151,78 @@ namespace qASIC.Console
             UnregisterLogManager(args.logs);
 
             //After
-            if (ReturnedValue is CommandPrompt)
-            {             
-                return ReturnedValue;
-            }
+            if (!(ReturnedValue is CommandPrompt))
+                CurrentCommand = null;
 
-            CurrentCommand = null;
             return ReturnedValue;
         }
 
+        /// <summary>Executes a command asynchronously.</summary>
+        /// <param name="args">Command arguments.</param>
+        public async Task<object> ExecuteAsync(GameCommandArgs args)
+        {
+            if (!PrepareForExecute(args))
+                return null;
+
+            RegisterLogManager(args.logs);
+            ReturnedValue = Execute(CurrentCommand.CommandName, () => CurrentCommand.Run(args));
+            if (ReturnedValue is Task task) 
+                ReturnedValue = await ExecuteAsync(CurrentCommand.CommandName, task);
+
+            UnregisterLogManager(args.logs);
+
+            if (!(ReturnedValue is CommandPrompt))
+                CurrentCommand = null;
+
+            return ReturnedValue;
+        }
+
+        /// <summary>Executes a command.</summary>
+        /// <param name="commandName">Name of the command.</param>
+        /// <param name="command">Command code to execute.</param>
+        /// <param name="logOutput">When true, it will log the output value to the console.</param>
         public object Execute(string commandName, Func<object> command, bool logOutput = true)
         {
             try
             {
                 var output = command.Invoke();
+                if (logOutput && output != null && !(output is CommandPrompt) && !(output is Task))
+                    Log($"Command returned '{output}'");
+
+                return output;
+            }
+            catch (CommandException e)
+            {
+                LogError(e.ToString(IncludeStackTraceInCommandExceptions));
+            }
+            catch (Exception e)
+            {
+                LogError(IncludeStackTraceInUnknownCommandExceptions ?
+                    $"There was an error while executing command '{commandName}': {e}" :
+                    $"There was an error while executing command '{commandName}'.");
+            }
+
+            return null;
+        }
+
+        public async Task<object> ExecuteAsync(string commandName, Func<Task> command, bool logOutput = true) =>
+            await ExecuteAsync(commandName, command.Invoke(), logOutput);
+
+        /// <summary>Executes a command asynchronously.</summary>
+        /// <param name="commandName">Name of the command.</param>
+        /// <param name="command">Command task to execute.</param>
+        /// <param name="logOutput">When true, it will log the output value to the console.</param>
+        public async Task<object> ExecuteAsync(string commandName, Task task, bool logOutput = true)
+        {
+            try
+            {
+                if (!(task is Task<object> objTask))
+                {
+                    await task;
+                    return null;
+                }
+
+                var output = await objTask;
 
                 if (logOutput && output != null && !(output is CommandPrompt))
                     Log($"Command returned '{output}'");
@@ -200,6 +241,38 @@ namespace qASIC.Console
             }
 
             return null;
+        }
+
+        private bool PrepareForExecute(GameCommandArgs args)
+        {
+            //Prompt
+            if (CurrentCommand != null)
+            {
+                if (!(ReturnedValue is CommandPrompt prompt))
+                    throw new Exception("A command is already being executed!");
+
+                args.prompt = prompt;
+
+                if (!prompt.CanExecute(args))
+                    return false;
+
+                args.args = prompt.Prepare(args);
+                return true;
+            }
+
+            //Normal
+            if (CommandList == null)
+                throw new Exception("Cannot execute commands with no command list!");
+
+            if (!CommandList.TryGetCommand(args.commandName, out var command))
+            {
+                LogError($"Command {args.commandName} doesn't exist");
+                return false;
+            }
+
+            CurrentCommand = command;
+
+            return true;
         }
 
         public virtual GameCommandArgs CreateCommandArgs(string cmd)

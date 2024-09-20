@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SysConsole = System.Console;
 
 namespace qASIC.Console
@@ -134,47 +135,71 @@ namespace qASIC.Console
 
             while (CanRead)
             {
-                string cmd;
-                switch (Console.ReturnedValue)
-                {
-                    case KeyPrompt keyPrompt:
-                        var key = SysConsole.ReadKey();
-
-                        var promptKey = key.Key switch
-                        {
-                            ConsoleKey.UpArrow => KeyPrompt.NavigationKey.Up,
-                            ConsoleKey.DownArrow => KeyPrompt.NavigationKey.Down,
-                            ConsoleKey.LeftArrow => KeyPrompt.NavigationKey.Left,
-                            ConsoleKey.RightArrow => KeyPrompt.NavigationKey.Right,
-                            ConsoleKey.Enter => KeyPrompt.NavigationKey.Confirm,
-                            ConsoleKey.Escape => KeyPrompt.NavigationKey.Cancel,
-                            _ => KeyPrompt.NavigationKey.None,
-                        };
-
-                        cmd = KeyPrompt.keyNames.Backward[promptKey];
-
-                        if (promptKey == KeyPrompt.NavigationKey.None)
-                        {
-                            if (!char.IsSymbol(key.KeyChar))
-                            {
-                                cmd = string.Empty;
-                                break;
-                            }
-
-                            cmd = key.KeyChar.ToString();
-                        }
-
-                        break;
-                    default:
-                        cmd = SysConsole.ReadLine();
-                        break;
-                }
+                string cmd = ConstructCmdString();
 
                 if (CanExecute?.Invoke(cmd) == false)
                     continue;
 
                 Console.Execute(cmd);
             }
+        }
+
+        /// <summary>Starts reading user input from the console window asynchronously.</summary>
+        /// <param name="readOnce">If true, reading will not be repeated.</param>
+        public async Task StartReadingAsync(bool readOnce = false)
+        {
+            CanRead = !readOnce;
+
+            while (CanRead)
+            {
+                string cmd = ConstructCmdString();
+
+                if (CanExecute?.Invoke(cmd) == false)
+                    continue;
+
+                await Console.ExecuteAsync(cmd);
+            }
+        }
+
+        string ConstructCmdString()
+        {
+            string cmd = string.Empty;
+            switch (Console.ReturnedValue)
+            {
+                case KeyPrompt keyPrompt:
+                    var key = SysConsole.ReadKey();
+
+                    var promptKey = key.Key switch
+                    {
+                        ConsoleKey.UpArrow => KeyPrompt.NavigationKey.Up,
+                        ConsoleKey.DownArrow => KeyPrompt.NavigationKey.Down,
+                        ConsoleKey.LeftArrow => KeyPrompt.NavigationKey.Left,
+                        ConsoleKey.RightArrow => KeyPrompt.NavigationKey.Right,
+                        ConsoleKey.Enter => KeyPrompt.NavigationKey.Confirm,
+                        ConsoleKey.Escape => KeyPrompt.NavigationKey.Cancel,
+                        _ => KeyPrompt.NavigationKey.None,
+                    };
+
+                    cmd = KeyPrompt.keyNames.Backward[promptKey];
+
+                    if (promptKey == KeyPrompt.NavigationKey.None)
+                    {
+                        if (!char.IsSymbol(key.KeyChar))
+                        {
+                            cmd = string.Empty;
+                            break;
+                        }
+
+                        cmd = key.KeyChar.ToString();
+                    }
+
+                    break;
+                default:
+                    cmd = SysConsole.ReadLine();
+                    break;
+            }
+
+            return cmd;
         }
 
         protected string CreateLogText(qLog log) =>

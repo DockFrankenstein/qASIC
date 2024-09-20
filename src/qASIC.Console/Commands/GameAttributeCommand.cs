@@ -3,6 +3,7 @@ using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace qASIC.Console.Commands
 {
@@ -141,7 +142,7 @@ namespace qASIC.Console.Commands
                     if (argCount != valueTypes.Length)
                         continue;
 
-                    returnValue = target.Invoke(finalValues.ToArray(), gameArgs);
+                    returnValue = target.Invoke(finalValues.ToArray(), gameArgs, targets.Length == 1);
                     return true;
                 }
 
@@ -174,7 +175,7 @@ namespace qASIC.Console.Commands
                 }
             }
 
-            public object Invoke(object[] values, GameCommandArgs args)
+            public object Invoke(object[] values, GameCommandArgs args, bool isSingle = false)
             {
                 var targetType = memberInfo.DeclaringType!;
                 var targets = targetAttr
@@ -215,11 +216,11 @@ namespace qASIC.Console.Commands
 
                 object ExecuteInConsole(Func<object> func)
                 {
-                    return args.console.Execute(args.commandName, () =>
+                    var obj = args.console.Execute(args.commandName, () =>
                     {
                         try
                         {
-                            return func?.Invoke();                           
+                            return func?.Invoke();
                         }
                         catch (TargetInvocationException e)
                         {
@@ -229,6 +230,11 @@ namespace qASIC.Console.Commands
                             throw;
                         }
                     }, logOutput: false);
+
+                    if (obj is Task task && (!isSingle || targets.Count() > 1))
+                        Task.Run(() => args.console.ExecuteAsync(args.commandName, task, logOutput: false));
+
+                    return obj;
                 }
             }
 
