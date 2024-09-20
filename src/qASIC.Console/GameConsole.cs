@@ -148,6 +148,12 @@ namespace qASIC.Console
             //Executing
             RegisterLogManager(args.logs);
             ReturnedValue = Execute(CurrentCommand.CommandName, () => CurrentCommand.Run(args));
+            if (ReturnedValue is Task task)
+            {
+                Task.Run(() => ExecuteAsync(CurrentCommand.CommandName, task, false));
+                ReturnedValue = null;
+            }
+
             UnregisterLogManager(args.logs);
 
             //After
