@@ -11,6 +11,7 @@ namespace qASIC.Console.Commands
         private List<RegisteredCommand> Commands { get; set; } = new List<RegisteredCommand>();
 
         public event Action<IEnumerable<ICommand>> OnCommandsAdded;
+        public event Action<IEnumerable<ICommand>> OnCommandsRemoved;
 
         /// <summary>Adds command to the list.</summary>
         /// <param name="command">Command to add.</param>
@@ -137,7 +138,10 @@ namespace qASIC.Console.Commands
                 .FirstOrDefault();
 
             if (target != null)
+            {
                 Commands.Remove(target);
+                OnCommandsRemoved?.Invoke(new ICommand[] { command });
+            }
 
             return this;
         }

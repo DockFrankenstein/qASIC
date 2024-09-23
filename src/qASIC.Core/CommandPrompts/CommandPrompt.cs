@@ -7,6 +7,6 @@
 
         public virtual bool ParseArguments => false;
 
-        public abstract ConsoleArgument[] Prepare(CommandArgs args);
+        public abstract CommandArgument[] Prepare(CommandArgs args);
     }
 }

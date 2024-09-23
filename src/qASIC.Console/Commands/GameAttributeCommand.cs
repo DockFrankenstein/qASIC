@@ -50,7 +50,7 @@ namespace qASIC.Console.Commands
 
             gameArgs.CheckArgumentCount(minArgLimit, maxArgLimit);
 
-            ConsoleArgument[] cmdArgs = gameArgs.args
+            CommandArgument[] cmdArgs = gameArgs.args
                 .Skip(1)
                 .ToArray();
 
@@ -229,10 +229,10 @@ namespace qASIC.Console.Commands
 
                             throw;
                         }
-                    }, logOutput: false);
+                    }, args.Logs, false);
 
                     if (obj is Task task && (!isSingle || targets.Count() > 1))
-                        Task.Run(() => args.console.ExecuteAsync(args.commandName, task, logOutput: false));
+                        Task.Run(() => args.console.ExecuteAsync(args.commandName, task, args.Logs, false));
 
                     return obj;
                 }

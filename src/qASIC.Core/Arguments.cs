@@ -6,7 +6,7 @@ using qASIC.CommandPrompts;
 
 namespace qASIC
 {
-    public class CommandArgs : IEnumerable<ConsoleArgument>
+    public class CommandArgs : IEnumerable<CommandArgument>
     {
         public CommandArgs() { }
         public CommandArgs(CommandArgs other)
@@ -15,20 +15,21 @@ namespace qASIC
             commandName = other.commandName;
             args = other.args;
             prompt = other.prompt;
-            logs = other.logs;
+            Logs = other.Logs;
         }
 
         public string inputString;
         public string commandName;
-        public ConsoleArgument[] args;
+        public CommandArgument[] args;
         public CommandPrompt prompt;
-        public LogManager logs = new LogManager();
 
-        public ConsoleArgument this[int index]
+        public CommandArgument this[int index]
         {
             get => args[index];
             set => args[index] = value;
         }
+
+        public LogManager Logs { get; set; } = new LogManager();
 
         public int Length => args.Length;
 
@@ -44,7 +45,7 @@ namespace qASIC
                 throw new CommandArgsCountException(argsCount, min, max);
         }
 
-        public IEnumerator<ConsoleArgument> GetEnumerator() =>
+        public IEnumerator<CommandArgument> GetEnumerator() =>
             args
             .AsEnumerable()
             .GetEnumerator();
@@ -53,11 +54,11 @@ namespace qASIC
             args.GetEnumerator();
     }
 
-    public class ConsoleArgument
+    public class CommandArgument
     {
-        public ConsoleArgument(string arg) : this(arg, new object[0]) { }
+        public CommandArgument(string arg) : this(arg, new object[0]) { }
 
-        public ConsoleArgument(string arg, object[] parsedValues)
+        public CommandArgument(string arg, object[] parsedValues)
         {
             this.arg = arg;
             this.parsedValues = parsedValues;
@@ -66,7 +67,7 @@ namespace qASIC
         public string arg;
         public object[] parsedValues;
 
-        public static explicit operator string(ConsoleArgument arg) =>
+        public static explicit operator string(CommandArgument arg) =>
             arg.arg.ToString();
 
         public T GetValue<T>() =>

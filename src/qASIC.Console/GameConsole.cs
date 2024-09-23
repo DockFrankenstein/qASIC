@@ -38,15 +38,6 @@ namespace qASIC.Console
 
             CommandParser = parser ?? new QuashParser();
 
-            foreach (var item in CommandList.Where(x => x is IHasLogs))
-                RegisterLoggable(item as IHasLogs);
-
-            CommandList.OnCommandsAdded += a =>
-            {
-                foreach (var item in a.Where(x => x is IHasLogs))
-                    RegisterLoggable(item as IHasLogs);
-            };
-
             qDebug.OnLog += QDebug_OnLog;
         }
 
@@ -90,7 +81,30 @@ namespace qASIC.Console
 
         public List<GameLog> Logs { get; internal set; } = new List<GameLog>();
 
-        public ICommandList CommandList { get; set; }
+        private ICommandList _commandList;
+        public ICommandList CommandList 
+        {
+            get => _commandList;
+            set
+            {
+                if (_commandList != null)
+                {
+                    _commandList.OnCommandsAdded -= CommandListOnAdd;
+                    _commandList.OnCommandsRemoved -= CommandListOnRemove;
+                    CommandListOnRemove(_commandList);
+                }
+
+                _commandList = value;
+
+                if (_commandList != null)
+                {
+                    _commandList.OnCommandsAdded += CommandListOnAdd;
+                    _commandList.OnCommandsRemoved += CommandListOnRemove;
+                    CommandListOnAdd(_commandList);
+                }
+            }
+        }
+
         public ArgumentsParser CommandParser { get; set; }
 
         public ICommand CurrentCommand { get; private set; } = null;
@@ -123,7 +137,7 @@ namespace qASIC.Console
         public bool CanParseAndExecute =>
             CommandList != null && CommandParser != null;
 
-        /// <summary>Can the console execute commands using <see cref="Execute(ConsoleArgument[])"/>.</summary>
+        /// <summary>Can the console execute commands using <see cref="Execute(CommandArgument[])"/>.</summary>
         public bool CanExecute =>
             CommandList != null;
 
@@ -146,15 +160,15 @@ namespace qASIC.Console
                 return null;
 
             //Executing
-            RegisterLogManager(args.logs);
+            RegisterLogManager(args.Logs);
             ReturnedValue = Execute(CurrentCommand.CommandName, () => CurrentCommand.Run(args));
             if (ReturnedValue is Task task)
             {
-                Task.Run(() => ExecuteAsync(CurrentCommand.CommandName, task, false));
+                Task.Run(() => ExecuteAsync(CurrentCommand.CommandName, task, args.Logs, false));
                 ReturnedValue = null;
             }
 
-            UnregisterLogManager(args.logs);
+            UnregisterLogManager(args.Logs);
 
             //After
             if (!(ReturnedValue is CommandPrompt))
@@ -170,12 +184,12 @@ namespace qASIC.Console
             if (!PrepareForExecute(args))
                 return null;
 
-            RegisterLogManager(args.logs);
+            RegisterLogManager(args.Logs);
             ReturnedValue = Execute(CurrentCommand.CommandName, () => CurrentCommand.Run(args));
             if (ReturnedValue is Task task) 
                 ReturnedValue = await ExecuteAsync(CurrentCommand.CommandName, task);
 
-            UnregisterLogManager(args.logs);
+            UnregisterLogManager(args.Logs);
 
             if (!(ReturnedValue is CommandPrompt))
                 CurrentCommand = null;
@@ -187,23 +201,23 @@ namespace qASIC.Console
         /// <param name="commandName">Name of the command.</param>
         /// <param name="command">Command code to execute.</param>
         /// <param name="logOutput">When true, it will log the output value to the console.</param>
-        public object Execute(string commandName, Func<object> command, bool logOutput = true)
+        public object Execute(string commandName, Func<object> command, LogManager logs = null, bool logOutput = true)
         {
             try
             {
                 var output = command.Invoke();
                 if (logOutput && output != null && !(output is CommandPrompt) && !(output is Task))
-                    Log($"Command returned '{output}'");
+                    logs?.Log($"Command returned '{output}'");
 
                 return output;
             }
             catch (CommandException e)
             {
-                LogError(e.ToString(IncludeStackTraceInCommandExceptions));
+                logs?.LogError(e.ToString(IncludeStackTraceInCommandExceptions));
             }
             catch (Exception e)
             {
-                LogError(IncludeStackTraceInUnknownCommandExceptions ?
+                logs?.LogError(IncludeStackTraceInUnknownCommandExceptions ?
                     $"There was an error while executing command '{commandName}': {e}" :
                     $"There was an error while executing command '{commandName}'.");
             }
@@ -211,14 +225,14 @@ namespace qASIC.Console
             return null;
         }
 
-        public async Task<object> ExecuteAsync(string commandName, Func<Task> command, bool logOutput = true) =>
-            await ExecuteAsync(commandName, command.Invoke(), logOutput);
+        public async Task<object> ExecuteAsync(string commandName, Func<Task> command, LogManager logs = null, bool logOutput = true) =>
+            await ExecuteAsync(commandName, command.Invoke(), logs, logOutput);
 
         /// <summary>Executes a command asynchronously.</summary>
         /// <param name="commandName">Name of the command.</param>
         /// <param name="command">Command task to execute.</param>
         /// <param name="logOutput">When true, it will log the output value to the console.</param>
-        public async Task<object> ExecuteAsync(string commandName, Task task, bool logOutput = true)
+        public async Task<object> ExecuteAsync(string commandName, Task task, LogManager logs = null, bool logOutput = true)
         {
             try
             {
@@ -231,17 +245,17 @@ namespace qASIC.Console
                 var output = await objTask;
 
                 if (logOutput && output != null && !(output is CommandPrompt))
-                    Log($"Command returned '{output}'");
+                    logs?.Log($"Command returned '{output}'");
 
                 return output;
             }
             catch (CommandException e)
             {
-                LogError(e.ToString(IncludeStackTraceInCommandExceptions));
+                logs?.LogError(e.ToString(IncludeStackTraceInCommandExceptions));
             }
             catch (Exception e)
             {
-                LogError(IncludeStackTraceInUnknownCommandExceptions ?
+                logs?.LogError(IncludeStackTraceInUnknownCommandExceptions ?
                     $"There was an error while executing command '{commandName}': {e}" :
                     $"There was an error while executing command '{commandName}'.");
             }
@@ -272,7 +286,7 @@ namespace qASIC.Console
 
             if (!CommandList.TryGetCommand(args.commandName, out var command))
             {
-                LogError($"Command {args.commandName} doesn't exist");
+                args.Logs.LogError($"Command {args.commandName} doesn't exist");
                 return false;
             }
 
@@ -296,9 +310,9 @@ namespace qASIC.Console
             return commandArgs;
         }
 
-        protected ConsoleArgument[] CreateConsoleArguments(string cmd)
+        protected CommandArgument[] CreateConsoleArguments(string cmd)
         {
-            var args = new ConsoleArgument[0];
+            var args = new CommandArgument[0];
 
             if (!(ReturnedValue is CommandPrompt prompt) || prompt.ParseArguments)
             {
@@ -313,6 +327,20 @@ namespace qASIC.Console
         #endregion
 
         #region Registering Loggables
+        void CommandListOnAdd(IEnumerable<ICommand> commands)
+        {
+            var targets = commands.Where(x => x is IHasLogs);
+            foreach (var item in targets)
+                RegisterLoggable(item as IHasLogs);
+        }
+
+        void CommandListOnRemove(IEnumerable<ICommand> commands)
+        {
+            var targets = commands.Where(x => x is IHasLogs);
+            foreach (var item in targets)
+                UnregisterLoggable(item as IHasLogs);
+        }
+
         private bool _getLogsFromInstance = true;
         /// <summary>Whenever to log messages from <see cref="Instance"/>.</summary>
         public bool GetLogsFromInstance

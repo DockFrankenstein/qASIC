@@ -8,7 +8,7 @@ namespace qASIC.Console.Parsing.Arguments
         public string[] textForTrue = new string[] { "true", "on", "yes" };
         public string[] textForFalse = new string[] { "false", "off", "no" };
 
-        public override ConsoleArgument[] ParseString(string cmd)
+        public override CommandArgument[] ParseString(string cmd)
         {
             List<string> args = new List<string>();
 
@@ -48,7 +48,7 @@ namespace qASIC.Console.Parsing.Arguments
             }
 
             args.Add(currentString);
-            return args.Select(x => new ConsoleArgument(x, ParseArgument(x))).ToArray();
+            return args.Select(x => new CommandArgument(x, ParseArgument(x))).ToArray();
         }
     }
 }

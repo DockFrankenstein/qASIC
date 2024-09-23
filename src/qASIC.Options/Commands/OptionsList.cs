@@ -19,7 +19,7 @@ namespace qASIC.Options.Commands
             foreach (var item in Manager.OptionsList)
                 txt.Append($"\n- {item.Key}:{item.Value.Value} (default: {item.Value.DefaultValue})");
 
-            args.logs.Log(txt.ToString());
+            args.Logs.Log(txt.ToString());
             return null;
         }
     }

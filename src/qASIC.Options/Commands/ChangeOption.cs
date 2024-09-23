@@ -102,7 +102,7 @@ namespace qASIC.Options.Commands
 
         object AskForValue(CommandArgs args)
         {
-            args.logs.Log("Enter value...");
+            args.Logs.Log("Enter value...");
             return valuePrompt;
         }
 
@@ -120,7 +120,7 @@ namespace qASIC.Options.Commands
             }
 
             listLog.message = txt.ToString();
-            args.logs.Log(listLog);
+            args.Logs.Log(listLog);
         }
 
         Options.OptionsList.ListItem GetOption(string settingName)

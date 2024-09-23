@@ -10,6 +10,7 @@ namespace qASIC
         ICommandList RemoveCommand(ICommand command);
 
         event Action<IEnumerable<ICommand>> OnCommandsAdded;
+        event Action<IEnumerable<ICommand>> OnCommandsRemoved;
 
         public bool TryGetCommand(string commandName, out ICommand command);
     }

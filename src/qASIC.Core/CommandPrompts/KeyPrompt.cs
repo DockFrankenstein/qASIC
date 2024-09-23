@@ -32,7 +32,7 @@ namespace qASIC.CommandPrompts
         public override bool CanExecute(CommandArgs args) =>
             args.inputString.Length > 0;
 
-        public override ConsoleArgument[] Prepare(CommandArgs args)
+        public override CommandArgument[] Prepare(CommandArgs args)
         {
             string s = args.inputString.First().ToString();
 
@@ -46,9 +46,9 @@ namespace qASIC.CommandPrompts
                 new object[] { s[0], s } :
                 new object[] { s };
 
-            return new ConsoleArgument[]
+            return new CommandArgument[]
             {
-                new ConsoleArgument(s, values),
+                new CommandArgument(s, values),
             };
         }
     }

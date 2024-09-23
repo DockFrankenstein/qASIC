@@ -9,7 +9,7 @@ namespace qASIC.Console.Parsing.Arguments
 
         public List<ValueParser> ValueParsers { get; set; } = new List<ValueParser>(ValueParser.CreateStandardParserArray());
 
-        public abstract ConsoleArgument[] ParseString(string cmd);
+        public abstract CommandArgument[] ParseString(string cmd);
 
         protected object[] ParseArgument(string arg)
         {

@@ -4,12 +4,12 @@
     {
         public string Text { get; private set; }
 
-        public override ConsoleArgument[] Prepare(CommandArgs args)
+        public override CommandArgument[] Prepare(CommandArgs args)
         {
             Text = args.inputString;
-            return new ConsoleArgument[]
+            return new CommandArgument[]
             {
-                new ConsoleArgument(args.inputString, new object[] { args.inputString }),
+                new CommandArgument(args.inputString, new object[] { args.inputString }),
             };
         }
     }
