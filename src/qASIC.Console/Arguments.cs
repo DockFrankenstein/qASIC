@@ -1,6 +1,4 @@
-﻿using qASIC.CommandPrompts;
-
-namespace qASIC.Console
+﻿namespace qASIC.Console
 {
     public class GameCommandArgs : CommandArgs
     {

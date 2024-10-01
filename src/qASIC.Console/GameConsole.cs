@@ -38,6 +38,8 @@ namespace qASIC.Console
 
             CommandParser = parser ?? new QuashParser();
 
+            RegisterLogManager(DefaultCommandLogs);
+
             qDebug.OnLog += QDebug_OnLog;
         }
 
@@ -110,6 +112,8 @@ namespace qASIC.Console
         public ICommand CurrentCommand { get; private set; } = null;
         public object ReturnedValue { get; private set; } = null;
 
+        public LogManager DefaultCommandLogs { get; private set; } = new LogManager();
+
         public GameConsoleTheme Theme { get; set; } = GameConsoleTheme.Default;
 
         /// <summary>Should the console log messages from <see cref="qDebug"/>.</summary>
@@ -160,15 +164,12 @@ namespace qASIC.Console
                 return null;
 
             //Executing
-            RegisterLogManager(args.Logs);
             ReturnedValue = Execute(CurrentCommand.CommandName, () => CurrentCommand.Run(args));
             if (ReturnedValue is Task task)
             {
                 Task.Run(() => ExecuteAsync(CurrentCommand.CommandName, task, args.Logs, false));
                 ReturnedValue = null;
             }
-
-            UnregisterLogManager(args.Logs);
 
             //After
             if (!(ReturnedValue is CommandPrompt))
@@ -184,12 +185,9 @@ namespace qASIC.Console
             if (!PrepareForExecute(args))
                 return null;
 
-            RegisterLogManager(args.Logs);
             ReturnedValue = Execute(CurrentCommand.CommandName, () => CurrentCommand.Run(args));
             if (ReturnedValue is Task task) 
                 ReturnedValue = await ExecuteAsync(CurrentCommand.CommandName, task);
-
-            UnregisterLogManager(args.Logs);
 
             if (!(ReturnedValue is CommandPrompt))
                 CurrentCommand = null;
@@ -276,6 +274,7 @@ namespace qASIC.Console
                 if (!prompt.CanExecute(args))
                     return false;
 
+                AddLogManagerToArgs(args);
                 args.args = prompt.Prepare(args);
                 return true;
             }
@@ -291,8 +290,16 @@ namespace qASIC.Console
             }
 
             CurrentCommand = command;
+            AddLogManagerToArgs(args);
 
             return true;
+        }
+
+        private void AddLogManagerToArgs(GameCommandArgs args)
+        {
+            args.Logs = DefaultCommandLogs;
+            if (CurrentCommand is IHasLogs iHasLogs)
+                args.Logs = iHasLogs.Logs;
         }
 
         public virtual GameCommandArgs CreateCommandArgs(string cmd)

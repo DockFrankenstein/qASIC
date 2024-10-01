@@ -15,7 +15,6 @@ namespace qASIC
             commandName = other.commandName;
             args = other.args;
             prompt = other.prompt;
-            Logs = other.Logs;
         }
 
         public string inputString;
@@ -23,13 +22,29 @@ namespace qASIC
         public CommandArgument[] args;
         public CommandPrompt prompt;
 
+        public event Action<qLog> OnLog;
+
+        private LogManager _logs = null;
+        public LogManager Logs 
+        {
+            get => _logs; 
+            set
+            {
+                if (_logs != null)
+                    _logs.OnLog -= OnLog;
+
+                _logs = value;
+
+                if (_logs != null)
+                    _logs.OnLog += OnLog;
+            }
+        }
+
         public CommandArgument this[int index]
         {
             get => args[index];
             set => args[index] = value;
         }
-
-        public LogManager Logs { get; set; } = new LogManager();
 
         public int Length => args.Length;
 
