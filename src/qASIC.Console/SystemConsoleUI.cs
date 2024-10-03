@@ -124,8 +124,11 @@ namespace qASIC.Console
 
         private Dictionary<qLog, LogData> VisibleLogs { get; set; } = new Dictionary<qLog, LogData>();
 
-        /// <summary>Gets invoked before <see cref="Execute"/>. If false, command will not be executed.</summary>
+        /// <summary>Gets invoked before executing a command. If false, command will not be executed.</summary>
         public event Func<string, bool> CanExecute;
+
+        /// <summary>Gets invoked before a command string starts being processed, can be used to modify</summary>
+        public event Func<string, string> ProcessCommandString;
 
         /// <summary>Starts reading user input from the console window.</summary>
         /// <param name="readOnce">If true, reading will not be repeated.</param>
@@ -140,6 +143,7 @@ namespace qASIC.Console
                 if (CanExecute?.Invoke(cmd) == false)
                     continue;
 
+                cmd = ProcessCommandString?.Invoke(cmd) ?? cmd;
                 Console.Execute(cmd);
             }
         }
@@ -157,6 +161,7 @@ namespace qASIC.Console
                 if (CanExecute?.Invoke(cmd) == false)
                     continue;
 
+                cmd = ProcessCommandString?.Invoke(cmd) ?? cmd;
                 await Console.ExecuteAsync(cmd);
             }
         }

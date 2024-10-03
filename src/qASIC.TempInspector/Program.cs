@@ -51,6 +51,7 @@ namespace qASICRemote
 
             Interface = new SystemConsoleUI(GConsole);
             Interface.CanExecute += Interface_CanExecute;
+            Interface.ProcessCommandString += Interface_ProcessCommandString;
 
             AppDomain.CurrentDomain.ProcessExit += OnApplicationClose;
 
@@ -125,7 +126,7 @@ namespace qASICRemote
             if (forceUseGConsole)
                 return true;
 
-            if (cmd.StartsWith("."))
+            if (cmd.StartsWith(".") && !cmd.StartsWith(".."))
             {
                 GConsole.Execute(cmd.Substring(1, cmd.Length - 1));
                 return false;
@@ -145,6 +146,14 @@ namespace qASICRemote
 
             consoleManager.Get(SelectedConsole.Name).SendCommand(cmd);
             return false;
+        }
+
+        private string Interface_ProcessCommandString(string arg)
+        {
+            if (arg.StartsWith(".."))
+                return arg.Substring(1, arg.Length - 1);
+
+            return arg;
         }
 
         private void ConsoleManager_OnConsoleRegister(GameConsole console)
