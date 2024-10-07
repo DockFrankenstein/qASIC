@@ -18,7 +18,7 @@ namespace qASIC.Console.Comms
 
             var console = new GameConsole(consoleName)
             {
-                Logs = logs,
+                Logs = new GameLogManager(logs),
                 Theme = args.packet.ReadNetworkSerializable<GameConsoleTheme>(),
             };
 
@@ -32,7 +32,7 @@ namespace qASIC.Console.Comms
         {
             var packet = new CC_ConsoleRegister().CreateEmptyPacketForConsole(console);
 
-            packet.Write(console.Logs.Count);
+            packet.Write(console.Logs.Logs.Count);
 
             foreach (var log in console.Logs)
                 packet.Write(log);

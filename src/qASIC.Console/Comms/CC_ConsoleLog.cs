@@ -19,13 +19,13 @@ namespace qASIC.Console.Comms
                 var index = args.packet.ReadInt();
                 if (console.Logs.IndexInRange(index))
                 {
-                    log = console.Logs[index].GetDataFromOther(log);
+                    log = console.Logs.Logs[index].GetDataFromOther(log);
                     OnRead?.Invoke(console, log);
                     return;
                 }
             }
 
-            console.Logs.Add(log);
+            console.Logs.Logs.Add(log);
             OnRead?.Invoke(console, log);
         }
 
@@ -34,7 +34,7 @@ namespace qASIC.Console.Comms
             var packet = new CC_ConsoleLog().CreateEmptyPacketForConsole(console)
                 .Write(log);
 
-            var index = console.Logs.IndexOf(log);
+            var index = console.Logs.Logs.IndexOf(log);
             if (updatingLog && index != -1)
                 packet.Write(index);
 

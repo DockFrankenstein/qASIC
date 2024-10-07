@@ -19,35 +19,26 @@ namespace qASIC
         #region Logging
         public event Action<qLog> OnLog;
 
-        public void Log(qLog log)
-        {
+        protected void InvokeOnLog(qLog log) =>
             OnLog?.Invoke(log);
-        }
 
-        public void Log(string message, string colorTag)
-        {
-            OnLog?.Invoke(qLog.CreateNow(message, colorTag));
-        }
+        public virtual void Log(qLog log) =>
+            InvokeOnLog(log);
 
-        public void Log(string message, qColor color)
-        {
-            OnLog?.Invoke(qLog.CreateNow(message, color));
-        }
+        public void Log(string message, string colorTag) =>
+            Log(qLog.CreateNow(message, colorTag));
 
-        public void Log(string message)
-        {
-            OnLog?.Invoke(qLog.CreateNow(message, DefaultColorTag));
-        }
+        public void Log(string message, qColor color) =>
+            Log(qLog.CreateNow(message, color));
 
-        public void LogWarning(string message)
-        {
-            OnLog?.Invoke(qLog.CreateNow(message, WarningColorTag));
-        }
+        public void Log(string message) =>
+            Log(qLog.CreateNow(message, DefaultColorTag));
 
-        public void LogError(string message)
-        {
-            OnLog?.Invoke(qLog.CreateNow(message, ErrorColorTag));
-        }
+        public void LogWarning(string message) =>
+            Log(qLog.CreateNow(message, WarningColorTag));
+
+        public void LogError(string message) =>
+            Log(qLog.CreateNow(message, ErrorColorTag));
         #endregion
 
         #region Loggables

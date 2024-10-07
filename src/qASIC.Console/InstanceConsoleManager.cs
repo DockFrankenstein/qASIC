@@ -57,8 +57,8 @@ namespace qASIC.Console
                 manager = this,
             });
 
-            console.OnLog += (log) => Console_OnLog(console, log);
-            console.OnUpdateLog += (log) => Console_OnUpdateLog(console, log);
+            console.Logs.OnLog += (log) => Console_OnLog(console, log);
+            console.Logs.OnUpdateLog += (log) => Console_OnUpdateLog(console, log);
 
             if (Peer is qServer server)
                 server.SendToAll(CC_ConsoleRegister.CreatePacket(console));
@@ -73,8 +73,8 @@ namespace qASIC.Console
         {
             var console = RegisteredConsoles[name].Console;
             RegisteredConsoles.Remove(name);
-            console.OnLog -= (log) => Console_OnLog(console, log);
-            console.OnUpdateLog -= (log) => Console_OnUpdateLog(console, log);
+            console.Logs.OnLog -= (log) => Console_OnLog(console, log);
+            console.Logs.OnUpdateLog -= (log) => Console_OnUpdateLog(console, log);
 
             if (Peer is qServer server)
                 server.SendToAll(new CC_ConsoleDeregister().CreateEmptyPacketForConsole(console));

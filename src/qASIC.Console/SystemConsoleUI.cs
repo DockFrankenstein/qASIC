@@ -30,8 +30,8 @@ namespace qASIC.Console
 
                 if (_console != null)
                 {
-                    _console.OnLog -= Console_OnLog;
-                    _console.OnUpdateLog -= Console_OnUpdateLog;
+                    _console.Logs.OnLog -= Console_OnLog;
+                    _console.Logs.OnUpdateLog -= Console_OnUpdateLog;
                 }
 
                 VisibleLogs.Clear();
@@ -39,8 +39,8 @@ namespace qASIC.Console
 
                 if (_console != null)
                 {
-                    _console.OnLog += Console_OnLog;
-                    _console.OnUpdateLog += Console_OnUpdateLog;
+                    _console.Logs.OnLog += Console_OnLog;
+                    _console.Logs.OnUpdateLog += Console_OnUpdateLog;
                 }
             }
         }

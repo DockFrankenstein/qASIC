@@ -28,6 +28,8 @@ namespace qASIC.Console
 
         public GameConsole(qInstance instance, string name, ICommandList commandList = null, ArgumentsParser parser = null)
         {
+            Logs = new GameLogManager();
+
             Instance = instance;
 
             Name = name;
@@ -37,8 +39,6 @@ namespace qASIC.Console
                 .FindAttributeCommands();
 
             CommandParser = parser ?? new QuashParser();
-
-            RegisterLogManager(DefaultCommandLogs);
 
             qDebug.OnLog += QDebug_OnLog;
         }
@@ -78,10 +78,7 @@ namespace qASIC.Console
 
         public string Name { get; private set; }
 
-        public event Action<GameLog> OnLog;
-        public event Action<GameLog> OnUpdateLog;
-
-        public List<GameLog> Logs { get; internal set; } = new List<GameLog>();
+        public GameLogManager Logs { get; internal set; }
 
         private ICommandList _commandList;
         public ICommandList CommandList 
@@ -111,8 +108,6 @@ namespace qASIC.Console
 
         public ICommand CurrentCommand { get; private set; } = null;
         public object ReturnedValue { get; private set; } = null;
-
-        public LogManager DefaultCommandLogs { get; private set; } = new LogManager();
 
         public GameConsoleTheme Theme { get; set; } = GameConsoleTheme.Default;
 
@@ -297,7 +292,7 @@ namespace qASIC.Console
 
         private void AddLogManagerToArgs(GameCommandArgs args)
         {
-            args.Logs = DefaultCommandLogs;
+            args.Logs = Logs;
             if (CurrentCommand is IHasLogs iHasLogs)
                 args.Logs = iHasLogs.Logs;
         }
@@ -338,14 +333,14 @@ namespace qASIC.Console
         {
             var targets = commands.Where(x => x is IHasLogs);
             foreach (var item in targets)
-                RegisterLoggable(item as IHasLogs);
+                Logs.RegisterLoggable(item as IHasLogs);
         }
 
         void CommandListOnRemove(IEnumerable<ICommand> commands)
         {
             var targets = commands.Where(x => x is IHasLogs);
             foreach (var item in targets)
-                UnregisterLoggable(item as IHasLogs);
+                Logs.UnregisterLoggable(item as IHasLogs);
         }
 
         private bool _getLogsFromInstance = true;
@@ -363,34 +358,14 @@ namespace qASIC.Console
                 switch (_getLogsFromInstance)
                 {
                     case true:
-                        RegisterLoggable(_instance);
+                        Logs.RegisterLoggable(_instance);
                         break;
                     case false:
-                        UnregisterLoggable(_instance);
+                        Logs.UnregisterLoggable(_instance);
                         break;
                 }
             }
         }
-
-        /// <summary>Registers to messages from an <see cref="IHasLogs"/>.</summary>
-        /// <param name="loggable">Loggable to register.</param>
-        public void RegisterLoggable(IHasLogs loggable) =>
-            RegisterLogManager(loggable.Logs);
-
-        /// <summary>Unregisters from messages from an <see cref="IHasLogs"/>.</summary>
-        /// <param name="loggable">Loggable to unregister.</param>
-        public void UnregisterLoggable(IHasLogs loggable) =>
-            UnregisterLogManager(loggable.Logs);
-
-        /// <summary>Registers to messages from an <see cref="LogManager"/>.</summary>
-        /// <param name="manager">Manager to register.</param>
-        public void RegisterLogManager(LogManager manager) =>
-            manager.OnLog += a => Log(a);
-
-        /// <summary>Unregisters from messages from an <see cref="LogManager"/>.</summary>
-        /// <param name="manager">Manager to unregister.</param>
-        public void UnregisterLogManager(LogManager manager) =>
-            manager.OnLog -= a => Log(a);
         #endregion
 
         #region Logging
@@ -431,12 +406,6 @@ namespace qASIC.Console
         /// <param name="useLogModifiers">If true, the console will check for color attributes.</param>
         public void Log(GameLog log, int stackTraceIndex = 2, bool useLogModifiers = false)
         {
-            if (Logs.Contains(log))
-            {
-                OnUpdateLog?.Invoke(log);
-                return;
-            }
-
             if (UseLogModifierAttributes && useLogModifiers)
             {
                 var stackTrace = new StackTrace();
@@ -457,8 +426,7 @@ namespace qASIC.Console
                 }
             }
 
-            Logs.Add(log);
-            OnLog?.Invoke(log);
+            Logs.Log(log);
         }
 
         /// <summary>Clears the console. Previous logs will still be there, but they won't show up in the output.</summary>

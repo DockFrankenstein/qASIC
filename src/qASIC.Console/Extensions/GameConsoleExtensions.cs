@@ -19,7 +19,7 @@ namespace qASIC.Console
         {
             Dictionary<qLog, KeyValuePair<int, int>> consoleLines = new Dictionary<qLog, KeyValuePair<int, int>>();
 
-            console.OnUpdateLog += (log) =>
+            console.Logs.OnUpdateLog += (log) =>
             {
                 //Ignore if clear
                 if (log.logType == LogType.Clear)
@@ -52,7 +52,7 @@ namespace qASIC.Console
                 SysConsole.CursorLeft = left;
             };
 
-            console.OnLog += (log) =>
+            console.Logs.OnLog += (log) =>
             {
                 if (log.logType == LogType.Clear)
                 {
