@@ -11,7 +11,7 @@ namespace qASIC.Options
         { }
 
         public OptionsManager(OptionTargetList targetList, OptionsSerializer serializer = null) :
-            this(null, targetList, serializer)
+            this(qInstance.Main, targetList, serializer)
         { }
 
         public OptionsManager(qInstance instance, OptionsSerializer serializer = null) :
